@@ -18,9 +18,7 @@ SmartHire AI is a state-of-the-art, microservices-based recruitment ecosystem de
 ---
 
 # Video Overview
-[<video src="https://github.com/AbdellahDeveloper/SmartHire/raw/main/Amb%20Team%20Submition%20Final%20compressed.mp4" controls="controls" style="max-width: 100%;">
-  Your browser does not support the video tag.
-</video>](https://github.com/AbdellahDeveloper/SmartHire/raw/main/Amb%20Team%20Submition%20Final%20compressed.mp4)
+https://raw.githubusercontent.com/AbdellahDeveloper/SmartHire/main/Amb%20Team%20Submition%20Final%20compressed.mp4
 
 
 ## 🏗 System Architecture
