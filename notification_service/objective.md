@@ -1,0 +1,5 @@
+API ENDPOINTS:
+- SEND AN EMAIL TO CANDIDATE
+    - INPUT: CANDIDATE ID, JOB ID or Job Description, DATE & TIME OF THE MEETING AS STRING AND GOOGLE CANLENDER LINK & (GOOGLE MEET LINK OR TEAMS LINK)
+    - Process: Send Premade Email For Booking a Meeting
+    - OUTPUT: Success Message

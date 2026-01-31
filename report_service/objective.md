@@ -1,0 +1,15 @@
+API ENDPOINTS:
+- Create Contract For a Candidate & Job
+    - INPUT: Candidate ID, Job ID/Job Description
+    - PROCESS:
+        - IF JOB ID IS PROVIDED:
+            - GET THE JOB FROM DB
+            - GET THE CANDIDATE FROM DB
+            - CREATE THE CONTRACT IN DB
+            - SAVE IT AS A PDF IN S3 BUCKET
+        - IF JOB DESCRIPTION IS PROVIDED:
+            - CREATE THE JOB FOR THIS CONTEXT
+            - GET THE CANDIDATE FROM DB
+            - CREATE THE CONTRACT IN DB
+            - SAVE IT AS A PDF IN S3 BUCKET
+    - OUTPUT: CONTRACT PDF LINK

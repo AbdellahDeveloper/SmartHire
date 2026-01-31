@@ -1,0 +1,25 @@
+API ENDPOINTS:
+- Match All Candidates with Job ID OR Job Description
+    - INPUT: Job ID OR Job Description
+    - PROCESS:
+        - GET THE JOB FROM DB
+        - RUN A VECTOR SEARCH ON THE JOB DESCRIPTION
+        - GET THE TOP K SIMILAR CANDIDATES
+        - ADD THIS MATCH TO REDIS CACHE
+    - OUTPUT: K Matched Candidates
+- Match FIRST K Candidates with Job ID OR Job Description
+    - INPUT: Job ID OR Job Description, K
+    - PROCESS:
+        - GET THE JOB FROM DB
+        - RUN A VECTOR SEARCH ON THE JOB DESCRIPTION
+        - GET THE TOP K SIMILAR CANDIDATES
+        - ADD THIS MATCH TO REDIS CACHE
+    - OUTPUT: K Matched Candidates
+- Match LAST K Candidates with Job ID OR Job Description
+    - INPUT: Job ID OR Job Description, K
+    - PROCESS:
+        - GET THE JOB FROM DB
+        - RUN A VECTOR SEARCH ON THE JOB DESCRIPTION
+        - GET THE LAST K SIMILAR CANDIDATES
+        - ADD THIS MATCH TO REDIS CACHE
+    - OUTPUT: K Matched Candidates
