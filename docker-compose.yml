@@ -1,0 +1,198 @@
+
+services:
+  candidate-service:
+    build: ./candidate_service
+    container_name: candidate-service
+    environment:
+      - PORT=3002
+      - MONGODB_URL=${MONGODB_URL}
+      - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
+      - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
+      - ENDPOINT=${ENDPOINT}
+      - REGION=${REGION}
+      - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
+      - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  job-service:
+    build: ./job_service
+    container_name: job-service
+    environment:
+      - PORT=3001
+      - MONGODB_URL=${MONGODB_URL}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  matching-service:
+    build: ./matching_service
+    container_name: matching-service
+    environment:
+      - PORT=3004
+      - MONGODB_URL=${MONGODB_URL}
+      - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
+      - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  report-service:
+    build: ./report_service
+    container_name: report-service
+    environment:
+      - PORT=3005
+      - MONGODB_URL=${MONGODB_URL}
+      - ENDPOINT=${ENDPOINT}
+      - REGION=${REGION}
+      - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
+      - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  email-processing-service:
+    build: ./email_processing_service
+    container_name: email-processing-service
+    environment:
+      - PORT=3005
+      - MONGODB_URL=${MONGODB_URL}
+      - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ENDPOINT=${ENDPOINT}
+      - REGION=${REGION}
+      - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
+      - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+    networks:
+      - smarthire-network
+
+  s3-processing-service:
+    build: ./s3_processing_service
+    container_name: s3-processing-service
+    environment:
+      - PORT=3005
+      - MONGODB_URL=${MONGODB_URL}
+      - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ENDPOINT=${ENDPOINT}
+      - REGION=${REGION}
+      - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
+      - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+    networks:
+      - smarthire-network
+
+  notification-service:
+    build: ./notification_service
+    container_name: notification-service
+    environment:
+      - PORT=3015
+      - MONGODB_URL=${MONGODB_URL}
+      - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
+      - MATCHING_SERVICE_URL=http://matching-service:3004/api
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  meet-scheduler:
+    build: ./meet_scheduler
+    container_name: meet-scheduler
+    environment:
+      - PORT=3012
+      - MONGODB_URL=${MONGODB_URL}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+
+  mcp-server:
+    build: ./smart_hire_mcp_server
+    container_name: mcp-server
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_DB_NAME=SmartHire
+      - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
+      - JOB_SERVICE_URL=http://job-service:3001/api
+      - MATCHING_SERVICE_URL=http://matching-service:3004/api
+      - REPORT_SERVICE_URL=http://report-service:3005/api
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - smarthire-network
+    depends_on:
+      - candidate-service
+      - job-service
+      - matching-service
+      - report-service
+
+  smarthire:
+    build: ./smart_hire_webapp
+    container_name: smarthire-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URL=${MONGODB_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=http://localhost:3000
+      - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
+      - MCP_SERVER_IP=http://localhost:3003/mcp
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
+      - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
+      - ENDPOINT=${ENDPOINT}
+      - REGION=${REGION}
+      - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
+      - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+    networks:
+      - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      mcp-server:
+        condition: service_started
+      candidate-service:
+        condition: service_started
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - smarthire-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  smarthire-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
