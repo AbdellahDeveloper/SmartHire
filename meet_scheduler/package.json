@@ -1,0 +1,27 @@
+{
+  "name": "meet_scheduler",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/index.ts",
+    "generate": "prisma generate",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.1",
+    "@elysiajs/html": "^1.4.0",
+    "@prisma/client": "6.19.0",
+    "@types/crypto-js": "^4.2.2",
+    "crypto-js": "^4.2.0",
+    "elysia": "latest",
+    "googleapis": "^170.1.0",
+    "nodemailer": "^7.0.13",
+    "prisma": "6.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@types/nodemailer": "^7.0.9",
+    "bun-types": "^1.3.6"
+  },
+  "module": "src/index.js"
+}
