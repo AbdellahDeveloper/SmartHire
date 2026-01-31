@@ -1,0 +1,22 @@
+{
+  "name": "Teams Bot",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@microsoft/teams.api": "latest",
+    "@microsoft/teams.apps": "latest",
+    "@microsoft/teams.cards": "latest",
+    "@microsoft/teams.common": "latest",
+    "@microsoft/teams.dev": "latest",
+    "@microsoft/teams.graph": "latest",
+    "botbuilder": "^4.23.3",
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/index.js"
+}

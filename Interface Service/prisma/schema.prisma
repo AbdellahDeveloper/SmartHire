@@ -1,0 +1,303 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- BetterAuth Models ---
+
+model User {
+  id            String    @id @map("_id")
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  role          String? // "admin" or "company"
+  companyId     String?   @db.ObjectId
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @map("_id")
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @map("_id")
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @map("_id")
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+// --- SmartHire Core Models ---
+
+model Company {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  email             String   @unique
+  microsoftTeamsIds String[]
+  googleMeetEnabled Boolean  @default(false)
+  smtpServer        String?
+  smtpPort          Int?
+  smtpEmail         String?
+  smtpPassword      String? // To be encrypted
+  mcpToken          String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("companies")
+}
+
+model SystemSettings {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  // Webapp Settings
+  llmProvider     String? // "openai", "google", "anthropic", "custom"
+  llmModel        String? // e.g. "gpt-5-nano"
+  llmApiKey       String? // To be encrypted
+  llmBaseUrl      String? // For custom providers
+  smtpConfigured  Boolean @default(false)
+  isSetupComplete Boolean @default(false)
+
+  // Key-Value Settings (Notification Cron, etc.)
+  key   String? @unique
+  value String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Job {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId        String   @db.ObjectId
+  title            String
+  seniorityLevel   String
+  domain           String
+  industry         String
+  location         String
+  workMode         String
+  employmentType   String
+  salaryMin        Float
+  salaryMax        Float
+  salaryCurrency   String   @default("USD")
+  description      String
+  responsibilities String?
+  educationLevel   String?
+  skills           String[]
+  niceToHaveSkills String[]
+  status           String   @default("open")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("jobs")
+}
+
+model Candidate {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  companyId            String  @db.ObjectId
+  firstName            String
+  lastName             String
+  fullName             String
+  city                 String
+  country              String
+  phoneNumber          String
+  email                String
+  gender               String
+  cvUrl                String
+  thumbnailUrl         String?
+  profileHighlight     String
+  currentJobTitle      String
+  yearsTotalExperience Float
+  seniorityLevel       String
+
+  skills             Json
+  workExperiences    Json
+  education          Json
+  certificates       Json
+  languages          Json
+  projects           Json
+  achievementsAwards Json
+
+  jobId  String? @db.ObjectId
+  status String  @default("ready")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("candidates")
+}
+
+model MatchSession {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  companyId      String        @db.ObjectId
+  jobId          String?       @db.ObjectId
+  jobDescription String?
+  criteria       Json?
+  results        MatchResult[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("match_sessions")
+}
+
+model MatchResult {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  companyId      String       @db.ObjectId
+  sessionId      String       @db.ObjectId
+  candidateId    String       @db.ObjectId
+  score          Float
+  analysis       Json
+  manualScore    Float?
+  overrideReason String?
+  matchSession   MatchSession @relation(fields: [sessionId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@map("match_results")
+}
+
+model MeetingConnection {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String   @db.ObjectId
+  email     String?  @unique
+  tokens    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("meeting_connections")
+}
+
+model Meeting {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId    String   @db.ObjectId
+  connectionId String   @db.ObjectId
+  summary      String
+  description  String?
+  startTime    DateTime
+  endTime      DateTime
+  meetLink     String?
+  htmlLink     String?
+  candidateId  String?  @db.ObjectId
+  followUpSent Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("meetings")
+}
+
+model MatchingReport {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String   @db.ObjectId
+  jobId     String   @db.ObjectId
+  s3Key     String
+  bucket    String
+  url       String?
+  createdAt DateTime @default(now())
+
+  @@map("matching_reports")
+}
+
+model UserMail {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String   @db.ObjectId
+  server      String
+  port        Int
+  email       String
+  password    String
+  lastChecked DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_mails")
+}
+
+model S3Credential {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  endpoint    String
+  region      String
+  accessKey   String
+  secretKey   String
+  bucket      String
+  lastChecked DateTime @default(now())
+
+  companyId String? @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("s3_credentials")
+}
+
+// --- MCP Server Specific Models ---
+
+model chatContext {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  sentAt         DateTime @default(now())
+  conversationId String
+  isSendByUser   Boolean
+  message        String?
+
+  @@map("chatContext")
+}
+
+enum ACTION {
+  APPROVE_ACTION
+  REJECT_ACTION
+  MARK_JOB_AS_CLOSED
+}
+
+model Commands {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  action ACTION
+
+  jobId  String?
+  candId String?
+
+  ApprovalIds String? // ";" seprated
+  context     String
+
+  isExec Boolean @default(false)
+
+  @@map("Commands")
+}

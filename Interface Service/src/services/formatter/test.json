@@ -1,0 +1,291 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Container",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Job Information",
+          "weight": "Bolder",
+          "size": "Large",
+          "color": "Accent"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Job ID", "value": "JOB-ENG-BE-4472" },
+            {
+              "title": "Title",
+              "value": "Senior Backend Engineer (Node.js Microservices)"
+            },
+            { "title": "Department", "value": "Engineering" },
+            { "title": "Hiring Manager", "value": "Karim Tazi" },
+            { "title": "Recruiter", "value": "Nadia Lahlou" },
+            { "title": "Location", "value": "Remote (Morocco Preferred)" },
+            { "title": "Employment Type", "value": "Full-time" },
+            { "title": "Headcount", "value": "2" },
+            { "title": "Priority Level", "value": "HIGH" },
+            { "title": "Salary Range", "value": "22,000 – 28,000 MAD" },
+            { "title": "SLA Hiring Target", "value": "21 Days" },
+            { "title": "Status", "value": "ACTIVE" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        { "type": "TextBlock", "text": "Job Description", "weight": "Bolder" },
+        {
+          "type": "TextBlock",
+          "text": "The role focuses on designing scalable microservices, optimizing API performance, database architecture, and integrating AI services. Candidate will work in a distributed system with event-driven architecture and CI/CD pipelines.",
+          "wrap": true
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Required Technical Stack",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Node.js", "value": "20%" },
+            { "title": "Microservices Architecture", "value": "15%" },
+            { "title": "PostgreSQL", "value": "15%" },
+            { "title": "Redis / Caching", "value": "10%" },
+            { "title": "Docker", "value": "10%" },
+            { "title": "System Design", "value": "15%" },
+            { "title": "CI/CD", "value": "5%" },
+            { "title": "Cloud (AWS/GCP)", "value": "10%" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Candidate Database Snapshot",
+          "weight": "Bolder"
+        },
+        {
+          "type": "Table",
+          "columns": [
+            { "width": "auto", "title": "ID" },
+            { "width": "stretch", "title": "Name" },
+            { "width": "auto", "title": "Experience" },
+            { "width": "auto", "title": "Current Role" }
+          ],
+          "rows": [
+            {
+              "cells": [
+                { "type": "TextBlock", "text": "CAND-78421" },
+                { "type": "TextBlock", "text": "Yassine El Amrani" },
+                { "type": "TextBlock", "text": "4.5 yrs" },
+                { "type": "TextBlock", "text": "Backend Engineer" }
+              ]
+            },
+            {
+              "cells": [
+                { "type": "TextBlock", "text": "CAND-55290" },
+                { "type": "TextBlock", "text": "Mehdi Boulahya" },
+                { "type": "TextBlock", "text": "6 yrs" },
+                { "type": "TextBlock", "text": "DevOps / Backend" }
+              ]
+            },
+            {
+              "cells": [
+                { "type": "TextBlock", "text": "CAND-99812" },
+                { "type": "TextBlock", "text": "Salma Idrissi" },
+                { "type": "TextBlock", "text": "2.3 yrs" },
+                { "type": "TextBlock", "text": "Frontend / Fullstack" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "AI Matching Engine Output",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Yassine", "value": "92" },
+            { "title": "Mehdi", "value": "95" },
+            { "title": "Salma", "value": "74" },
+            { "title": "Omar", "value": "89" }
+          ]
+        },
+        {
+          "type": "TextBlock",
+          "text": "Candidate Match Score Breakdown",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Yassine",
+              "value": "Excellent match in tech skills, experience, and system design."
+            },
+            {
+              "title": "Mehdi",
+              "value": "Strong overall match, especially in System Design and Experience."
+            },
+            {
+              "title": "Salma",
+              "value": "Lower match score, limited experience in required stack."
+            },
+            {
+              "title": "Omar",
+              "value": "Good match with some gaps in database design."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Candidate Skills Breakdown",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Yassine",
+              "value": "Node.js, Microservices, Postgres, Redis, Docker"
+            },
+            {
+              "title": "Mehdi",
+              "value": "Node.js, Kubernetes, AWS, Terraform, Postgres"
+            },
+            { "title": "Omar", "value": "Python, FastAPI, AI APIs, Redis" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        { "type": "TextBlock", "text": "Scoring Factors", "weight": "Bolder" },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Yassine",
+              "value": "API Performance 9/10, Database Design 8/10, System Design 8/10"
+            },
+            {
+              "title": "Mehdi",
+              "value": "API Performance 8/10, Database Design 9/10, System Design 9/10"
+            },
+            {
+              "title": "Omar",
+              "value": "API Performance 8/10, Database Design 7/10, System Design 7/10"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "HR Pipeline Tracking",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Candidate", "value": "Yassine" },
+            { "title": "CV Screen", "value": "✅" },
+            { "title": "AI Match", "value": "✅" },
+            { "title": "HR Interview", "value": "✅" },
+            { "title": "Tech Test", "value": "✅" },
+            { "title": "Manager Interview", "value": "🔄" },
+            { "title": "Stage Duration", "value": "14 days" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Risk & Retention Analysis",
+          "weight": "Bolder"
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            {
+              "title": "Yassine",
+              "value": "Low Job Change, High Market Demand, 87% Retention Probability, Medium Salary Risk"
+            },
+            {
+              "title": "Mehdi",
+              "value": "Medium Job Change, Very High Market Demand, 70% Retention, High Salary Risk"
+            },
+            {
+              "title": "Omar",
+              "value": "Low Job Change, High Market Demand, 82%, Medium Salary Risk"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "separator": true,
+      "items": [
+        { "type": "TextBlock", "text": "System Metadata", "weight": "Bolder" },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Matching Engine Version", "value": "v3.4 Neural Fit" },
+            {
+              "title": "Ranking Algorithm",
+              "value": "Weighted Multi-Factor AI Model"
+            },
+            { "title": "CV Parsing Confidence", "value": "97%" },
+            { "title": "Data Freshness", "value": "Updated 3 hours ago" },
+            { "title": "Talent Pool Size", "value": "18,420 candidates" },
+            {
+              "title": "Job Competition Index",
+              "value": "0.72 (High competition)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
