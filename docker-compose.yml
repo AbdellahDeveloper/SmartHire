@@ -28,6 +28,7 @@ services:
       - "3040:3040"
     environment:
       NODE_ENV: production
+      MCP_URL: "http://mcp-server:3003/mcp"
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       MONGODB_URL: mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
     restart: unless-stopped
