@@ -1,11 +1,47 @@
 
 services:
+  teams-bot:
+    build:
+      context: "./Teams Bot"
+      dockerfile: Dockerfile
+    container_name: teams-bot
+    ports:
+      - "3333:3333"
+    environment:
+      NODE_ENV: production
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      TENANT_ID: ${TENANT_ID}
+      AI_SERVICE_URL: http://ai-interface:3040
+
+    restart: unless-stopped
+    depends_on:
+      - ai-interface
+    networks:
+      - smarthire-network
+
+  ai-interface:
+    build:
+      context: "./Interface Service"
+      dockerfile: Dockerfile
+    container_name: ai-interface
+    ports:
+      - "3040:3040"
+    environment:
+      NODE_ENV: production
+      MONGODB_URL: mongodb://mongodb:27017/smart_hire
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    networks:
+      - smarthire-network
+
   candidate-service:
     build: ./candidate_service
     container_name: candidate-service
     environment:
       - PORT=3002
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENDPOINT=${ENDPOINT}
@@ -21,7 +57,7 @@ services:
     container_name: job-service
     environment:
       - PORT=3001
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
@@ -31,7 +67,7 @@ services:
     container_name: matching-service
     environment:
       - PORT=3004
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -43,7 +79,7 @@ services:
     container_name: report-service
     environment:
       - PORT=3005
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - ENDPOINT=${ENDPOINT}
       - REGION=${REGION}
       - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
@@ -57,7 +93,7 @@ services:
     container_name: email-processing-service
     environment:
       - PORT=3005
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -72,7 +108,7 @@ services:
     container_name: s3-processing-service
     environment:
       - PORT=3005
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -87,14 +123,9 @@ services:
     container_name: notification-service
     environment:
       - PORT=3015
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - MATCHING_SERVICE_URL=http://matching-service:3004/api
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
       - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
@@ -105,14 +136,10 @@ services:
     container_name: meet-scheduler
     environment:
       - PORT=3012
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - GOOGLE_REDIRECT_URI="http://meet-scheduler:3012/callback"
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
@@ -124,7 +151,7 @@ services:
       - "3003:3003"
     environment:
       - PORT=3003
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - MONGODB_DB_NAME=SmartHire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
       - JOB_SERVICE_URL=http://job-service:3001/api
@@ -146,17 +173,12 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3000
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
       - MCP_SERVER_IP=http://localhost:3003/mcp
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENDPOINT=${ENDPOINT}
