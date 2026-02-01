@@ -43,25 +43,24 @@ export default function CompaniesManagementPage() {
 
     const handleCreateCompany = async () => {
         setLoading(true);
-        try {
-            await addCompanyAccount(companyData);
-            toast.success("Company account created");
+        const result = await addCompanyAccount(companyData);
+        if (result.success) {
+            toast.success(`Company account created. An email has been sent to ${companyData.email} to define the account password.`);
             setCompanyData({ companyName: "", email: "" });
             loadCompanies();
-        } catch {
-            toast.error("Failed to create company");
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(result.error || "Failed to create company");
         }
+        setLoading(false);
     };
 
     const handleDeleteCompany = async (id: string) => {
-        try {
-            await deleteCompany(id);
+        const result = await deleteCompany(id);
+        if (result.success) {
             toast.success("Company and all associated data deleted");
             loadCompanies();
-        } catch {
-            toast.error("Failed to delete company");
+        } else {
+            toast.error(result.error || "Failed to delete company");
         }
     };
 

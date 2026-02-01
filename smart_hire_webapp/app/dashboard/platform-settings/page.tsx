@@ -29,8 +29,9 @@ export default function AdminDashboardPage() {
 
     useEffect(() => {
         const loadSettings = async () => {
-            const data = await getSystemSettings();
-            if (data) {
+            const result = await getSystemSettings();
+            if (result.success && result.settings) {
+                const data = result.settings;
                 setSettings({
                     llm: {
                         provider: data.llm.provider || "openai",
@@ -46,6 +47,8 @@ export default function AdminDashboardPage() {
                         from: data.smtp.from || ""
                     }
                 });
+            } else if (!result.success) {
+                toast.error(result.error || "Failed to load settings");
             }
         };
         loadSettings();
@@ -53,14 +56,13 @@ export default function AdminDashboardPage() {
 
     const handleUpdateSettings = async () => {
         setLoading(true);
-        try {
-            await updateSystemSettings(settings);
+        const result = await updateSystemSettings(settings);
+        if (result.success) {
             toast.success("System settings updated successfully");
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Failed to update settings");
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(result.error || "Failed to update settings");
         }
+        setLoading(false);
     };
 
     return (

@@ -56,15 +56,14 @@ function SetupPasswordContent() {
         }
 
         setLoading(true);
-        try {
-            await setupInitialPassword(email!, token!, password);
+        const result = await setupInitialPassword(email!, token!, password);
+        if (result.success) {
             toast.success("Password setup successful");
             setSetupComplete(true);
-        } catch (error: any) {
-            toast.error(error.message || "Failed to set up password");
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(result.error || "Failed to set up password");
         }
+        setLoading(false);
     };
 
     if (verifying) {

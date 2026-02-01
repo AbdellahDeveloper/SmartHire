@@ -26,10 +26,14 @@ export default function DashboardPage() {
             if (session?.user) {
                 try {
                     const companyIdForData = role === "admin" ? undefined : (session.user as any).companyId;
-                    const dashboardData = await getDashboardData(companyIdForData);
-                    setData(dashboardData);
+                    const result = await getDashboardData(companyIdForData);
+                    if (result.success) {
+                        setData(result.data || null);
+                    } else {
+                        console.error("Failed to fetch dashboard data:", result.error);
+                    }
                 } catch (error) {
-                    console.error("Failed to fetch dashboard data:", error);
+                    console.error("Failed to fetch dashboard data (exception):", error);
                 } finally {
                     setLoading(false);
                 }

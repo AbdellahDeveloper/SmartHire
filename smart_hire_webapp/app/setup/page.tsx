@@ -40,55 +40,40 @@ export default function SetupPage() {
 
     const handleTestLLM = async () => {
         setTestingLLM(true);
-        try {
-            const res = await testLLM(setupData.llm.provider, setupData.llm.apiKey, setupData.llm.modelName, setupData.llm.baseUrl);
-            if (res.success) {
-                toast.success(res.message);
-                setLlmTested(true);
-            } else {
-                toast.error(res.message);
-                setLlmTested(false);
-            }
-        } catch (error) {
-            toast.error("An error occurred while testing LLM connectivity.");
-        } finally {
-            setTestingLLM(false);
+        const res = await testLLM(setupData.llm.provider, setupData.llm.apiKey, setupData.llm.modelName, setupData.llm.baseUrl);
+        if (res.success) {
+            toast.success(res.message);
+            setLlmTested(true);
+        } else {
+            toast.error(res.message || "An error occurred while testing LLM connectivity.");
+            setLlmTested(false);
         }
+        setTestingLLM(false);
     };
 
     const handleTestSMTP = async () => {
         setTestingSMTP(true);
-        try {
-            const res = await testSMTP(setupData.smtp);
-            if (res.success) {
-                toast.success(res.message);
-                setSmtpTested(true);
-            } else {
-                toast.error(res.message);
-                setSmtpTested(false);
-            }
-        } catch (error) {
-            toast.error("An error occurred while testing SMTP connectivity.");
-        } finally {
-            setTestingSMTP(false);
+        const res = await testSMTP(setupData.smtp);
+        if (res.success) {
+            toast.success(res.message);
+            setSmtpTested(true);
+        } else {
+            toast.error(res.message || "An error occurred while testing SMTP connectivity.");
+            setSmtpTested(false);
         }
+        setTestingSMTP(false);
     };
 
     const handleCompleteSetup = async () => {
         setSubmitting(true);
-        try {
-            const res = await completeSetup(setupData);
-            if (res.success) {
-                toast.success("Setup complete! Redirecting to login...");
-                router.push("/auth");
-            } else {
-                toast.error(res.message);
-            }
-        } catch (error) {
-            toast.error("An error occurred while finishing setup.");
-        } finally {
-            setSubmitting(false);
+        const res = await completeSetup(setupData);
+        if (res.success) {
+            toast.success("Setup complete! Redirecting to login...");
+            router.push("/auth");
+        } else {
+            toast.error(res.message || "An error occurred while finishing setup.");
         }
+        setSubmitting(false);
     };
 
     const nextStep = () => setStep(prev => Math.min(prev + 1, 3));

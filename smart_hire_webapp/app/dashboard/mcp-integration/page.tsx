@@ -28,14 +28,13 @@ export default function MCPIntegrationPage() {
     }, [session]);
 
     const loadConfig = async (companyId: string) => {
-        try {
-            const { token, serverIp } = await getMCPConfig(companyId);
-            setConfig({ token, serverUrl: serverIp });
-        } catch (error) {
-            toast.error("Failed to load MCP configuration");
-        } finally {
-            setLoading(false);
+        const result = await getMCPConfig(companyId);
+        if (result.success) {
+            setConfig({ token: result.token ?? null, serverUrl: result.serverIp ?? "" });
+        } else {
+            toast.error(result.error || "Failed to load MCP configuration");
         }
+        setLoading(false);
     };
 
     const handleRegenerate = async () => {
@@ -43,15 +42,14 @@ export default function MCPIntegrationPage() {
         if (!companyId) return;
 
         setRegenerating(true);
-        try {
-            const newToken = await regenerateMCPToken(companyId);
-            setConfig(prev => ({ ...prev, token: newToken }));
+        const result = await regenerateMCPToken(companyId);
+        if (result.success) {
+            setConfig(prev => ({ ...prev, token: result.token ?? null }));
             toast.success("MCP Token regenerated");
-        } catch (error) {
-            toast.error("Failed to regenerate token");
-        } finally {
-            setRegenerating(false);
+        } else {
+            toast.error(result.error || "Failed to regenerate token");
         }
+        setRegenerating(false);
     };
 
     const copyToClipboard = (text: string, id: string) => {

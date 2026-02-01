@@ -66,69 +66,66 @@ export default function CompanySettingsPage() {
     }, [session]);
 
     const loadSettings = async (companyId: string) => {
-        try {
-            const data = await getCompanySettings(companyId);
-            if (data) {
-                setSettings({
-                    teamsIds: data.microsoftTeamsIds || [],
-                    googleMeetEnabled: data.googleMeetEnabled,
-                    imapServer: data.imapServer || "",
-                    imapPort: data.imapPort || 993,
-                    imapEmail: data.imapEmail || "",
-                    smtpServer: data.smtpServer || "",
-                    smtpPort: data.smtpPort || 587,
-                    smtpEmail: data.smtpEmail || "",
-                    s3Bucket: data.s3Bucket || "",
-                    s3AccessKey: data.s3AccessKey || "",
-                    s3Region: data.s3Region || "us-east-1"
-                });
-            }
-            // Load meeting connection separately
-            const connection = await getMeetingConnection(companyId);
-            if (connection) {
-                setMeetingConnection({ email: connection.email || "Connected account" });
-            } else {
-                setMeetingConnection(null);
-            }
-        } catch {
-            toast.error("Failed to load settings");
+        const result = await getCompanySettings(companyId);
+        if (result.success && result.settings) {
+            const data = result.settings;
+            setSettings({
+                teamsIds: data.microsoftTeamsIds || [],
+                googleMeetEnabled: data.googleMeetEnabled,
+                imapServer: data.imapServer || "",
+                imapPort: data.imapPort || 993,
+                imapEmail: data.imapEmail || "",
+                smtpServer: data.smtpServer || "",
+                smtpPort: data.smtpPort || 587,
+                smtpEmail: data.smtpEmail || "",
+                s3Bucket: data.s3Bucket || "",
+                s3AccessKey: data.s3AccessKey || "",
+                s3Region: data.s3Region || "us-east-1"
+            });
+        } else if (!result.success) {
+            toast.error(result.error || "Failed to load settings");
+        }
+
+        // Load meeting connection separately
+        const connResult = await getMeetingConnection(companyId);
+        if (connResult.success && connResult.connection) {
+            setMeetingConnection({ email: connResult.connection.email || "Connected account" });
+        } else {
+            setMeetingConnection(null);
         }
     };
 
     const handleConnectMeet = async () => {
         const companyId = (session?.user as { companyId?: string })?.companyId;
-        console.log(companyId)
         if (!companyId) return;
 
-        try {
-            const data = await connectMeetingAccount();
-            if (data.url) {
-                const width = 600;
-                const height = 700;
-                const left = window.screenX + (window.outerWidth - width) / 2;
-                const top = window.screenY + (window.outerHeight - height) / 2;
+        const result = await connectMeetingAccount();
+        if (result.success && result.url) {
+            const width = 600;
+            const height = 700;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
 
-                const authWindow = window.open(
-                    data.url,
-                    "Connect Google Meet",
-                    `width=${width},height=${height},left=${left},top=${top}`
-                );
+            const authWindow = window.open(
+                result.url,
+                "Connect Google Meet",
+                `width=${width},height=${height},left=${left},top=${top}`
+            );
 
-                // Poll for connection status
-                const interval = setInterval(async () => {
-                    const conn = await getMeetingConnection(companyId);
-                    if (conn) {
-                        setMeetingConnection({ email: conn.email || "Connected account" });
-                        toast.success("Google Meet connected successfully");
-                        clearInterval(interval);
-                    }
-                    if (authWindow?.closed) {
-                        clearInterval(interval);
-                    }
-                }, 2000);
-            }
-        } catch (error) {
-            toast.error("Failed to initiate connection");
+            // Poll for connection status
+            const interval = setInterval(async () => {
+                const connRes = await getMeetingConnection(companyId);
+                if (connRes.success && connRes.connection) {
+                    setMeetingConnection({ email: connRes.connection.email || "Connected account" });
+                    toast.success("Google Meet connected successfully");
+                    clearInterval(interval);
+                }
+                if (authWindow?.closed) {
+                    clearInterval(interval);
+                }
+            }, 2000);
+        } else {
+            toast.error(result.error || "Failed to initiate connection");
         }
     };
 
@@ -136,12 +133,12 @@ export default function CompanySettingsPage() {
         const companyId = (session?.user as { companyId?: string })?.companyId;
         if (!companyId) return;
 
-        try {
-            await revokeMeetingConnection(companyId);
+        const result = await revokeMeetingConnection(companyId);
+        if (result.success) {
             setMeetingConnection(null);
             toast.success("Google Meet connection revoked");
-        } catch {
-            toast.error("Failed to revoke connection");
+        } else {
+            toast.error(result.error || "Failed to revoke connection");
         }
     };
 
@@ -170,14 +167,13 @@ export default function CompanySettingsPage() {
         if (!companyId) return;
 
         setLoading(true);
-        try {
-            await updateTeamsConversationIds(companyId, settings.teamsIds);
+        const result = await updateTeamsConversationIds(companyId, settings.teamsIds);
+        if (result.success) {
             toast.success("Teams Conversation IDs saved");
-        } catch {
-            toast.error("Failed to save Teams IDs");
-        } finally {
-            setLoading(false);
+        } else {
+            toast.error(result.error || "Failed to save Teams IDs");
         }
+        setLoading(false);
     };
 
     const handleSaveSMTP = async () => {
@@ -185,19 +181,19 @@ export default function CompanySettingsPage() {
         if (!companyId) return;
 
         setSmtpLoading(true);
-        try {
-            await updateSMTPSettings(companyId, {
-                smtpServer: settings.smtpServer,
-                smtpPort: settings.smtpPort,
-                smtpEmail: settings.smtpEmail,
-                smtpPassword: settings.smtpPassword
-            });
+        const result = await updateSMTPSettings(companyId, {
+            smtpServer: settings.smtpServer,
+            smtpPort: settings.smtpPort,
+            smtpEmail: settings.smtpEmail,
+            smtpPassword: settings.smtpPassword
+        });
+
+        if (result.success) {
             toast.success("SMTP settings validated and saved");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save SMTP settings");
-        } finally {
-            setSmtpLoading(false);
+        } else {
+            toast.error(result.error || "Failed to save SMTP settings");
         }
+        setSmtpLoading(false);
     };
 
     const handleSaveIMAP = async () => {
@@ -205,19 +201,19 @@ export default function CompanySettingsPage() {
         if (!companyId) return;
 
         setImapLoading(true);
-        try {
-            await updateIMAPSettings(companyId, {
-                imapServer: settings.imapServer,
-                imapPort: settings.imapPort,
-                imapEmail: settings.imapEmail,
-                imapPassword: settings.imapPassword
-            });
+        const result = await updateIMAPSettings(companyId, {
+            imapServer: settings.imapServer,
+            imapPort: settings.imapPort,
+            imapEmail: settings.imapEmail,
+            imapPassword: settings.imapPassword
+        });
+
+        if (result.success) {
             toast.success("IMAP settings validated and saved");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save IMAP settings");
-        } finally {
-            setImapLoading(false);
+        } else {
+            toast.error(result.error || "Failed to save IMAP settings");
         }
+        setImapLoading(false);
     };
 
     const handleSaveS3 = async () => {
@@ -225,19 +221,19 @@ export default function CompanySettingsPage() {
         if (!companyId) return;
 
         setS3Loading(true);
-        try {
-            await updateS3Settings(companyId, {
-                s3Bucket: settings.s3Bucket,
-                s3AccessKey: settings.s3AccessKey,
-                s3SecretKey: settings.s3SecretKey,
-                s3Region: settings.s3Region
-            });
+        const result = await updateS3Settings(companyId, {
+            s3Bucket: settings.s3Bucket,
+            s3AccessKey: settings.s3AccessKey,
+            s3SecretKey: settings.s3SecretKey,
+            s3Region: settings.s3Region
+        });
+
+        if (result.success) {
             toast.success("S3 settings validated and saved");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save S3 settings");
-        } finally {
-            setS3Loading(false);
+        } else {
+            toast.error(result.error || "Failed to save S3 settings");
         }
+        setS3Loading(false);
     };
 
     return (
