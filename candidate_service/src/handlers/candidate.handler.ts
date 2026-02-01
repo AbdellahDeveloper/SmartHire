@@ -225,10 +225,10 @@ export const createCandidateFromPdfUrl = async (url: string, companyId: string, 
     }
 }
 
-export const getCandidateById = async (id: string, companyId: string) => {
+export const getCandidateById = async (id: string) => {
     try {
         const candidate = await prisma.candidate.findFirst({
-            where: { id, companyId }
+            where: { id }
         })
         if (!candidate) return { success: false, message: 'Candidate not found or access denied' }
 
