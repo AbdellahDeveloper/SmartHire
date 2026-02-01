@@ -6,6 +6,7 @@ services:
     container_name: teams-bot
     ports:
       - "3333:3333"
+      - "3978:3978"
     environment:
       NODE_ENV: production
       CLIENT_ID: ${CLIENT_ID}
