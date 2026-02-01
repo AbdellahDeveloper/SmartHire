@@ -4,29 +4,31 @@ import { prisma } from "./prisma";
 
 export async function getTransporter(companyId?: string, forceAdmin: boolean = false) {
     const getAdminConfig = async () => {
-        const settings = await prisma.systemSettings.findMany({
-            where: {
-                key: {
-                    in: ["admin_smtp_host", "admin_smtp_port", "admin_smtp_user", "admin_smtp_pass"]
-                }
-            }
+        const settings = await prisma.systemSettings.findFirst({
+            where: { isSetupComplete: true }
         });
 
-        const config: any = {};
-        settings.forEach(s => {
-            if (s.key) config[s.key] = s.value;
-        });
+        if (!settings || !settings.smtpHost) {
+            console.error("Admin SMTP not configured");
+            return {
+                host: "",
+                port: 587,
+                secure: false,
+                auth: { user: "", pass: "" },
+            };
+        }
 
         return {
-            host: config.admin_smtp_host,
-            port: parseInt(config.admin_smtp_port || "587"),
-            secure: config.admin_smtp_port === "465",
+            host: settings.smtpHost,
+            port: settings.smtpPort || 587,
+            secure: settings.smtpPort === 465,
             auth: {
-                user: config.admin_smtp_user,
-                pass: decrypt(config.admin_smtp_pass),
+                user: settings.smtpUser || "",
+                pass: settings.smtpPassword ? decrypt(settings.smtpPassword) : "",
             },
         };
     };
+
 
     if (forceAdmin || !companyId) {
         const adminConfig = await getAdminConfig();
