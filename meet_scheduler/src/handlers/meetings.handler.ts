@@ -4,9 +4,11 @@ import { getTransporter } from "../lib/mail";
 import { prisma } from "../lib/prisma";
 
 const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        redirectUri: process.env.GOOGLE_REDIRECT_URI
+    }
 );
 
 const signState = (companyId: string) => {
@@ -104,9 +106,11 @@ export const meetingHandler = {
         if (!connection) throw new Error("Meeting connection not found. Please connect your Google Calendar first.");
 
         const client = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,
-            process.env.GOOGLE_REDIRECT_URI
+            {
+                clientId: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                redirectUri: process.env.GOOGLE_REDIRECT_URI
+            }
         );
         client.setCredentials(connection.tokens as any);
 
