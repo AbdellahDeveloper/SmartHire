@@ -139,34 +139,21 @@ export async function completeSetup(data: SetupData) {
     // 2. Create the system settings
     const encryptedLLMKey = encrypt(llm.apiKey);
 
-    const adminSettings = [
-      { key: "admin_smtp_host", value: smtp.host, isSetupComplete: true },
-      {
-        key: "admin_smtp_port",
-        value: smtp.port.toString(),
+    await prisma.systemSettings.create({
+      data: {
+        llmProvider: llm.provider,
+        llmApiKey: encryptedLLMKey,
+        llmBaseUrl: llm.baseUrl,
+        llmModel: llm.modelName,
         isSetupComplete: true,
+        smtpConfigured: !!smtp.host,
+        smtpHost: smtp.host,
+        smtpPort: smtp.port,
+        smtpUser: smtp.user,
+        smtpPassword: encrypt(smtp.pass),
+        smtpFrom: smtp.user, // Default to using the smtp user as from address
       },
-      { key: "admin_smtp_user", value: smtp.user, isSetupComplete: true },
-      {
-        key: "admin_smtp_pass",
-        value: encrypt(smtp.pass),
-        isSetupComplete: true,
-      },
-    ];
-
-    await Promise.all([
-      prisma.systemSettings.create({
-        data: {
-          llmProvider: llm.provider,
-          llmApiKey: encryptedLLMKey,
-          llmBaseUrl: llm.baseUrl,
-          isSetupComplete: true,
-          smtpConfigured: !!smtp.host,
-          llmModel: llm.modelName,
-        },
-      }),
-      ...adminSettings.map((s) => prisma.systemSettings.create({ data: s })),
-    ]);
+    });
 
     return { success: true };
   } catch (error) {
