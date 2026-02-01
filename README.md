@@ -163,7 +163,7 @@ SECRET_ACCESS_KEY=
 # you may need to create a azure Bot in "azure Portal" to get those credentials (pl use single talent app)
 CLIENT_ID=
 # OAuth client ID.
-# Get from Microsoft Azure App Registration or Google Cloud Console.
+# Get from Microsoft Azure App Registration.
 
 CLIENT_SECRET=
 # OAuth client secret.
