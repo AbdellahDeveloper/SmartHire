@@ -220,6 +220,8 @@ services:
       - ACCESS_KEY_ID=${ACCESS_KEY_ID}
     networks:
       - smarthire-network
+    restart: unless-stopped
+
     depends_on:
       mongodb:
         condition: service_healthy
