@@ -4,13 +4,13 @@ import { getTransporter } from "../lib/mail";
 import { prisma } from "../lib/prisma";
 
 const oauth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
     process.env.GOOGLE_REDIRECT_URI
 );
 
 const signState = (companyId: string) => {
-    const hmac = crypto.createHmac("sha256", process.env.CLIENT_SECRET || "secret");
+    const hmac = crypto.createHmac("sha256", process.env.GOOGLE_CLIENT_SECRET || "secret");
     hmac.update(companyId);
     const signature = hmac.digest("hex");
     return `${companyId}:${signature}`;
@@ -20,7 +20,7 @@ const verifyState = (state: string) => {
     const [companyId, signature] = state.split(":");
     if (!companyId || !signature) throw new Error("Invalid state format");
 
-    const hmac = crypto.createHmac("sha256", process.env.CLIENT_SECRET || "secret");
+    const hmac = crypto.createHmac("sha256", process.env.GOOGLE_CLIENT_SECRET || "secret");
     hmac.update(companyId);
     const expectedSignature = hmac.digest("hex");
 
@@ -104,8 +104,8 @@ export const meetingHandler = {
         if (!connection) throw new Error("Meeting connection not found. Please connect your Google Calendar first.");
 
         const client = new google.auth.OAuth2(
-            process.env.CLIENT_ID,
-            process.env.CLIENT_SECRET,
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
             process.env.GOOGLE_REDIRECT_URI
         );
         client.setCredentials(connection.tokens as any);
