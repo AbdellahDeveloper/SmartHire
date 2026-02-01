@@ -12,7 +12,7 @@ services:
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
       TENANT_ID: ${TENANT_ID}
-      AI_SERVICE_URL: http://ai-interface:3040
+      INTERFACE_URL: http://ai-interface:3040
     restart: unless-stopped
     depends_on:
       - ai-interface
