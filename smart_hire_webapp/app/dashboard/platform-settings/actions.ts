@@ -6,39 +6,54 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { generateText, stepCountIs, tool } from "ai";
+import { generateText, tool } from "ai";
 import { z } from "zod";
 
-const LLMSettingsSchema = z.object({
-    provider: z.string().min(1, "Provider is required"),
-    apiKey: z.string().min(1, "API Key is required"),
-    modelName: z.string().min(1, "Model Name is required"),
-    baseUrl: z.string().optional(),
+const SystemSettingsSchema = z.object({
+    llm: z.object({
+        provider: z.string().min(1, "Provider is required"),
+        apiKey: z.string().min(1, "API Key is required"),
+        modelName: z.string().min(1, "Model Name is required"),
+        baseUrl: z.string().optional(),
+    }),
+    smtp: z.object({
+        host: z.string().min(1, "SMTP Host is required"),
+        port: z.number().int(),
+        user: z.string().min(1, "SMTP User is required"),
+        password: z.string().optional(),
+        from: z.string().min(1, "From email is required"),
+    }).optional()
 });
-
-type LLMSettings = z.infer<typeof LLMSettingsSchema>;
 
 export async function getSystemSettings() {
     const settings = await prisma.systemSettings.findFirst();
     if (!settings) return null;
 
     return {
-        provider: settings.llmProvider,
-        modelName: settings.llmModel || "",
-        baseUrl: settings.llmBaseUrl || "",
-        // We don't return the API key for security, but we know it's there
-        hasApiKey: !!settings.llmApiKey
+        llm: {
+            provider: settings.llmProvider,
+            modelName: settings.llmModel || "",
+            baseUrl: settings.llmBaseUrl || "",
+            hasApiKey: !!settings.llmApiKey
+        },
+        smtp: {
+            host: settings.smtpHost || "",
+            port: settings.smtpPort || 587,
+            user: settings.smtpUser || "",
+            from: settings.smtpFrom || "",
+            hasPassword: !!settings.smtpPassword
+        }
     };
 }
 
-export async function updateSystemSettings(data: LLMSettings) {
-    // 1. Validate the data with Zod
-    const validatedData = LLMSettingsSchema.parse(data);
+export async function updateSystemSettings(data: z.infer<typeof SystemSettingsSchema>) {
+    // 1. Validate the data
+    const validatedData = SystemSettingsSchema.parse(data);
 
-    // 2. Validate LLM Connectivity & Tool Calling (Same as setup)
+    // 2. Validate LLM Connectivity
     try {
         let model;
-        const { provider, apiKey, modelName, baseUrl } = validatedData;
+        const { provider, apiKey, modelName, baseUrl } = validatedData.llm;
 
         if (provider === "openai") {
             model = createOpenAI({ apiKey })(modelName || "gpt-5-nano");
@@ -59,32 +74,47 @@ export async function updateSystemSettings(data: LLMSettings) {
 
         await generateText({
             model,
-            prompt: "Test connectivity and tool calling. Answer with 'OK' if you can see the tool.",
             tools: {
-                "check-system": tool({
-                    description: "check-system",
-                    inputSchema: z.object({}),
-                    execute: async () => ({ status: "online" })
-                })
+                getSecret: tool({
+                    description: "Here you find the secret",
+                    inputSchema: z.void(),
+                    execute: async () => {
+                        return { secret: "Welcome_TO_SMARTHIRE" };
+                    }
+                }),
             },
-            stopWhen: stepCountIs(2)
+            prompt: "Call the tool and give me the secret only.",
         });
     } catch (error) {
         console.error("LLM Validation Failed:", error);
         throw new Error(`LLM Verification Failed: ${(error as Error).message}`);
     }
 
-    // 3. If validation passed, save the settings
+    // 3. Save the settings
     const settings = await prisma.systemSettings.findFirst();
     if (!settings) throw new Error("System settings not found");
 
+    const updateData: any = {
+        llmProvider: validatedData.llm.provider,
+        llmApiKey: encrypt(validatedData.llm.apiKey),
+        llmModel: validatedData.llm.modelName,
+        llmBaseUrl: validatedData.llm.baseUrl,
+    };
+
+    if (validatedData.smtp) {
+        updateData.smtpHost = validatedData.smtp.host;
+        updateData.smtpPort = validatedData.smtp.port;
+        updateData.smtpUser = validatedData.smtp.user;
+        updateData.smtpFrom = validatedData.smtp.from;
+        updateData.smtpConfigured = true;
+        if (validatedData.smtp.password) {
+            updateData.smtpPassword = encrypt(validatedData.smtp.password);
+        }
+    }
+
     return await prisma.systemSettings.update({
         where: { id: settings.id },
-        data: {
-            llmProvider: validatedData.provider,
-            llmApiKey: encrypt(validatedData.apiKey),
-            llmModel: validatedData.modelName,
-            llmBaseUrl: validatedData.baseUrl,
-        }
+        data: updateData
     });
 }
+

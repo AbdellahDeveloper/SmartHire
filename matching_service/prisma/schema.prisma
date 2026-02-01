@@ -99,9 +99,13 @@ model SystemSettings {
     smtpConfigured  Boolean @default(false)
     isSetupComplete Boolean @default(false)
 
-    // Key-Value Settings (Notification Cron, etc.)
-    key   String? @unique
-    value String?
+    smtpHost     String?
+    smtpPort     Int?
+    smtpUser     String?
+    smtpPassword String?
+    smtpFrom     String?
+
+    lastCandidateCountHighScore Int @default(0)
 
     updatedAt DateTime @updatedAt
 

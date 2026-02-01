@@ -86,14 +86,12 @@ export function startNotificationCron() {
             console.log("[CRON] Checking triggers for high-score matches...");
 
             const currentCandidateCount = await prisma.candidate.count();
-            const lastCountSetting = await prisma.systemSettings.findUnique({
-                where: { key: "last_candidate_count_high_score" }
-            });
+            const settings = await prisma.systemSettings.findFirst();
 
-            const lastCount = lastCountSetting ? parseInt(lastCountSetting.value) : 0;
+            const lastCount = settings?.lastCandidateCountHighScore || 0;
             const diff = currentCandidateCount - lastCount;
 
-            if (diff < 200 && lastCountSetting) {
+            if (diff < 200 && settings) {
                 console.log(`[CRON] Only ${diff} new candidates added since last run. Minimum 200 required. Skipping.`);
                 return;
             }
@@ -166,13 +164,19 @@ export function startNotificationCron() {
             }
 
             // Update the last candidate count
-            await prisma.systemSettings.upsert({
-                where: { key: "last_candidate_count_high_score" },
-                update: { value: currentCandidateCount.toString() },
-                create: { key: "last_candidate_count_high_score", value: currentCandidateCount.toString() }
-            });
+            if (settings) {
+                await prisma.systemSettings.update({
+                    where: { id: settings.id },
+                    data: { lastCandidateCountHighScore: currentCandidateCount }
+                });
+            } else {
+                await prisma.systemSettings.create({
+                    data: { lastCandidateCountHighScore: currentCandidateCount }
+                });
+            }
             console.log(`[CRON] High-score matches completed. Last count updated to ${currentCandidateCount}`);
         },
+
         overrunProtection: true
     });
 

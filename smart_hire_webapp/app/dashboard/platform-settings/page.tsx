@@ -11,22 +11,40 @@ import { getSystemSettings, updateSystemSettings } from "./actions";
 
 export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(false);
-    const [llmSettings, setLlmSettings] = useState({
-        provider: "openai",
-        apiKey: "",
-        modelName: "",
-        baseUrl: ""
+    const [settings, setSettings] = useState({
+        llm: {
+            provider: "openai",
+            apiKey: "",
+            modelName: "",
+            baseUrl: ""
+        },
+        smtp: {
+            host: "",
+            port: 587,
+            user: "",
+            password: "",
+            from: ""
+        }
     });
 
     useEffect(() => {
         const loadSettings = async () => {
-            const settings = await getSystemSettings();
-            if (settings) {
-                setLlmSettings({
-                    provider: settings.provider || "openai",
-                    apiKey: "", // Keep empty for security
-                    modelName: settings.modelName || "",
-                    baseUrl: settings.baseUrl || ""
+            const data = await getSystemSettings();
+            if (data) {
+                setSettings({
+                    llm: {
+                        provider: data.llm.provider || "openai",
+                        apiKey: "", // Keep empty
+                        modelName: data.llm.modelName || "",
+                        baseUrl: data.llm.baseUrl || ""
+                    },
+                    smtp: {
+                        host: data.smtp.host || "",
+                        port: data.smtp.port || 587,
+                        user: data.smtp.user || "",
+                        password: "", // Keep empty
+                        from: data.smtp.from || ""
+                    }
                 });
             }
         };
@@ -36,7 +54,7 @@ export default function AdminDashboardPage() {
     const handleUpdateSettings = async () => {
         setLoading(true);
         try {
-            await updateSystemSettings(llmSettings);
+            await updateSystemSettings(settings);
             toast.success("System settings updated successfully");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to update settings");
@@ -62,8 +80,8 @@ export default function AdminDashboardPage() {
                         <div className="space-y-2 w-full">
                             <Label>Provider</Label>
                             <Select
-                                value={llmSettings.provider}
-                                onValueChange={(val) => setLlmSettings(prev => ({ ...prev, provider: val || "openai" }))}
+                                value={settings.llm.provider}
+                                onValueChange={(val) => setSettings(prev => ({ ...prev, llm: { ...prev.llm, provider: val || "openai" } }))}
                             >
                                 <SelectTrigger className="bg-muted border-border w-full">
                                     <SelectValue placeholder="Select Provider" />
@@ -81,23 +99,20 @@ export default function AdminDashboardPage() {
                             <Input
                                 className="bg-muted border-border"
                                 placeholder="e.g. gpt-5-nano"
-                                value={llmSettings.modelName}
-                                onChange={(e) => setLlmSettings(prev => ({ ...prev, modelName: e.target.value }))}
+                                value={settings.llm.modelName}
+                                onChange={(e) => setSettings(prev => ({ ...prev, llm: { ...prev.llm, modelName: e.target.value } }))}
                             />
                         </div>
                     </div>
-                    {llmSettings.provider === "custom" && (
+                    {settings.llm.provider === "custom" && (
                         <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                             <Label>Base URL</Label>
                             <Input
                                 className="bg-muted border-border"
                                 placeholder="https://api.your-provider.com/v1"
-                                value={llmSettings.baseUrl}
-                                onChange={(e) => setLlmSettings(prev => ({ ...prev, baseUrl: e.target.value }))}
+                                value={settings.llm.baseUrl}
+                                onChange={(e) => setSettings(prev => ({ ...prev, llm: { ...prev.llm, baseUrl: e.target.value } }))}
                             />
-                            <p className="text-[10px] text-muted-foreground">
-                                The base URL for the OpenAI compatible API
-                            </p>
                         </div>
                     )}
                     <div className="space-y-2">
@@ -106,25 +121,87 @@ export default function AdminDashboardPage() {
                             type="password"
                             className="bg-muted border-border"
                             placeholder="sk-..."
-                            value={llmSettings.apiKey}
-                            onChange={(e) => setLlmSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                            value={settings.llm.apiKey}
+                            onChange={(e) => setSettings(prev => ({ ...prev, llm: { ...prev.llm, apiKey: e.target.value } }))}
                         />
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card className="bg-card/50 border-border backdrop-blur-sm">
+                <CardHeader>
+                    <CardTitle>Global SMTP Configuration</CardTitle>
+                    <CardDescription>Fallback SMTP settings for system notifications and newly created companies.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>SMTP Host</Label>
+                            <Input
+                                className="bg-muted border-border"
+                                placeholder="smtp.gmail.com"
+                                value={settings.smtp.host}
+                                onChange={(e) => setSettings(prev => ({ ...prev, smtp: { ...prev.smtp, host: e.target.value } }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>SMTP Port</Label>
+                            <Input
+                                type="number"
+                                className="bg-muted border-border"
+                                placeholder="587"
+                                value={settings.smtp.port}
+                                onChange={(e) => setSettings(prev => ({ ...prev, smtp: { ...prev.smtp, port: parseInt(e.target.value) || 587 } }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>SMTP User (Email)</Label>
+                            <Input
+                                className="bg-muted border-border"
+                                placeholder="admin@smarthire.com"
+                                value={settings.smtp.user}
+                                onChange={(e) => setSettings(prev => ({ ...prev, smtp: { ...prev.smtp, user: e.target.value } }))}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>SMTP Password</Label>
+                            <Input
+                                type="password"
+                                className="bg-muted border-border"
+                                placeholder="••••••••"
+                                value={settings.smtp.password}
+                                onChange={(e) => setSettings(prev => ({ ...prev, smtp: { ...prev.smtp, password: e.target.value } }))}
+                            />
+                        </div>
+                        <div className="space-y-2 col-span-2">
+                            <Label>Send From Email</Label>
+                            <Input
+                                className="bg-muted border-border"
+                                placeholder="no-reply@smarthire.com"
+                                value={settings.smtp.from}
+                                onChange={(e) => setSettings(prev => ({ ...prev, smtp: { ...prev.smtp, from: e.target.value } }))}
+                            />
+                        </div>
+                    </div>
+
                     <Button
                         onClick={handleUpdateSettings}
                         disabled={
                             loading ||
-                            !llmSettings.apiKey ||
-                            !llmSettings.modelName ||
-                            !llmSettings.provider ||
-                            (llmSettings.provider === 'custom' && !llmSettings.baseUrl)
+                            !settings.llm.apiKey ||
+                            !settings.llm.modelName ||
+                            !settings.llm.provider ||
+                            !settings.smtp.host ||
+                            !settings.smtp.user ||
+                            !settings.smtp.from
                         }
                         className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
                     >
-                        {loading ? "Saving..." : "Save Configuration"}
+                        {loading ? "Saving..." : "Save All Configurations"}
                     </Button>
                 </CardContent>
             </Card>
         </div>
     );
 }
+
