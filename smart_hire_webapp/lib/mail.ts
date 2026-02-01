@@ -3,7 +3,6 @@ import { decrypt } from "./crypto";
 import { prisma } from "./prisma";
 
 export async function getTransporter(companyId?: string, forceAdmin: boolean = false) {
-    // Helper to get admin SMTP from DB
     const getAdminConfig = async () => {
         const settings = await prisma.systemSettings.findMany({
             where: {
@@ -18,25 +17,13 @@ export async function getTransporter(companyId?: string, forceAdmin: boolean = f
             if (s.key) config[s.key] = s.value;
         });
 
-        if (config.admin_smtp_host && config.admin_smtp_user && config.admin_smtp_pass) {
-            return {
-                host: config.admin_smtp_host,
-                port: parseInt(config.admin_smtp_port || "587"),
-                secure: config.admin_smtp_port === "465",
-                auth: {
-                    user: config.admin_smtp_user,
-                    pass: decrypt(config.admin_smtp_pass),
-                },
-            };
-        }
-
         return {
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || "587"),
-            secure: process.env.SMTP_PORT === "465",
+            host: config.admin_smtp_host,
+            port: parseInt(config.admin_smtp_port || "587"),
+            secure: config.admin_smtp_port === "465",
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: config.admin_smtp_user,
+                pass: decrypt(config.admin_smtp_pass),
             },
         };
     };
