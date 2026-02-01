@@ -28,7 +28,7 @@ services:
       - "3040:3040"
     environment:
       NODE_ENV: production
-      # Added replicaSet param
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       MONGODB_URL: mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
     restart: unless-stopped
     depends_on:
