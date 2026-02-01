@@ -188,6 +188,9 @@ GOOGLE_CLIENT_SECRET=
 # Google OAuth Client Secret
 # This is the private secret key linked to your Google OAuth application.
 
+
+GOOGLE_REDIRECT_URI=
+# meet scheduler call back url ex : http://localhost:3012/callback
 ```
 
 ```bash

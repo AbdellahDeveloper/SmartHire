@@ -162,7 +162,7 @@ services:
       - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GOOGLE_REDIRECT_URI="http://meet-scheduler:3012/callback"
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
