@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
+import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
 import { ImapFlow } from "imapflow";
 import { headers } from "next/headers";
 import nodemailer from "nodemailer";
@@ -190,6 +191,7 @@ export async function updateS3Settings(companyId: string, data: {
     s3AccessKey: string;
     s3SecretKey?: string;
     s3Region: string;
+    s3Endpoint?: string;
 }) {
     try {
         const session = await auth.api.getSession({ headers: await headers() });
@@ -204,19 +206,28 @@ export async function updateS3Settings(companyId: string, data: {
         const secretToUse = data.s3SecretKey || (existing?.secretKey ? decrypt(existing.secretKey) : "");
 
         if (!secretToUse) {
-            return { success: false, error: "S3 Secret Key is required for validation" };
+            console.error(`S3 validation failed: No secret key provided or found for company ${companyId}`);
+            return {
+                success: false,
+                error: existing ? "S3 Secret Key is required (type it again if you haven't yet)" : "S3 Secret Key is required for first-time setup"
+            };
         }
 
         try {
-            // @ts-ignore
-            const bucket = Bun.s3(data.s3Bucket, {
-                accessKeyId: data.s3AccessKey,
-                secretAccessKey: secretToUse,
+            const client = new S3Client({
                 region: data.s3Region,
+                endpoint: data.s3Endpoint || undefined,
+                credentials: {
+                    accessKeyId: data.s3AccessKey,
+                    secretAccessKey: secretToUse,
+                },
+                forcePathStyle: !!data.s3Endpoint,
             });
-            await bucket.exists(".smarthire-check");
+
+            await client.send(new HeadBucketCommand({ Bucket: data.s3Bucket }));
         } catch (error: any) {
-            return { success: false, error: `S3 Validation failed: ${error.message || "Invalid credentials or bucket"}` };
+            console.error("S3 Validation details:", error);
+            return { success: false, error: `S3 Validation failed, Invalid credentials or bucket` };
         }
 
         let result;
@@ -228,7 +239,7 @@ export async function updateS3Settings(companyId: string, data: {
                     accessKey: data.s3AccessKey,
                     secretKey: data.s3SecretKey ? encrypt(data.s3SecretKey) : undefined,
                     region: data.s3Region,
-                    endpoint: `https://s3.${data.s3Region}.amazonaws.com`, // Default for AWS
+                    endpoint: data.s3Endpoint,
                 }
             });
         } else {
@@ -239,7 +250,7 @@ export async function updateS3Settings(companyId: string, data: {
                     accessKey: data.s3AccessKey,
                     secretKey: encrypt(secretToUse),
                     region: data.s3Region,
-                    endpoint: `https://s3.${data.s3Region}.amazonaws.com`,
+                    endpoint: data.s3Endpoint || "",
                 }
             });
         }
@@ -275,6 +286,7 @@ export async function getCompanySettings(companyId: string) {
                 s3Bucket: s3?.bucket,
                 s3AccessKey: s3?.accessKey,
                 s3Region: s3?.region,
+                s3Endpoint: s3?.endpoint,
             }
         };
     } catch (error: any) {

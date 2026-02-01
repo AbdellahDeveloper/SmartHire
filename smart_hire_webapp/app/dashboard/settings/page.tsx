@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/lib/auth-client";
 import { CheckCircle, ExternalLink, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { connectMeetingAccount, getCompanySettings, getMeetingConnection, revokeMeetingConnection, updateIMAPSettings, updateS3Settings, updateSMTPSettings, updateTeamsConversationIds } from "./actions";
 
@@ -37,6 +37,7 @@ export default function CompanySettingsPage() {
         s3AccessKey: string;
         s3SecretKey?: string;
         s3Region: string;
+        s3Endpoint?: string;
     }
 
     const [settings, setSettings] = useState<SettingsState>({
@@ -50,16 +51,19 @@ export default function CompanySettingsPage() {
         smtpEmail: "",
         s3Bucket: "",
         s3AccessKey: "",
-        s3Region: "us-east-1"
+        s3Region: "us-east-1",
+        s3Endpoint: ""
     });
 
     const [meetingConnection, setMeetingConnection] = useState<{ email: string } | null>(null);
     const [teamsIdsInput, setTeamsIdsInput] = useState("");
 
+    const hasLoaded = useRef(false);
     useEffect(() => {
-        if (session?.user?.id) {
+        if (session?.user?.id && !hasLoaded.current) {
             const companyId = (session.user as { companyId?: string }).companyId;
             if (companyId) {
+                hasLoaded.current = true;
                 loadSettings(companyId);
             }
         }
@@ -69,7 +73,8 @@ export default function CompanySettingsPage() {
         const result = await getCompanySettings(companyId);
         if (result.success && result.settings) {
             const data = result.settings;
-            setSettings({
+            setSettings(prev => ({
+                ...prev,
                 teamsIds: data.microsoftTeamsIds || [],
                 googleMeetEnabled: data.googleMeetEnabled,
                 imapServer: data.imapServer || "",
@@ -80,8 +85,9 @@ export default function CompanySettingsPage() {
                 smtpEmail: data.smtpEmail || "",
                 s3Bucket: data.s3Bucket || "",
                 s3AccessKey: data.s3AccessKey || "",
-                s3Region: data.s3Region || "us-east-1"
-            });
+                s3Region: data.s3Region || "us-east-1",
+                s3Endpoint: data.s3Endpoint || ""
+            }));
         } else if (!result.success) {
             toast.error(result.error || "Failed to load settings");
         }
@@ -225,7 +231,8 @@ export default function CompanySettingsPage() {
             s3Bucket: settings.s3Bucket,
             s3AccessKey: settings.s3AccessKey,
             s3SecretKey: settings.s3SecretKey,
-            s3Region: settings.s3Region
+            s3Region: settings.s3Region,
+            s3Endpoint: settings.s3Endpoint
         });
 
         if (result.success) {
@@ -419,6 +426,7 @@ export default function CompanySettingsPage() {
                                         type="password"
                                         className="bg-muted border-border"
                                         placeholder="••••••••"
+                                        value={settings.smtpPassword || ""}
                                         onChange={(e) => setSettings(prev => ({ ...prev, smtpPassword: e.target.value }))}
                                     />
                                     <p className="text-[10px] text-muted-foreground">Leave empty to use existing password.</p>
@@ -490,6 +498,7 @@ export default function CompanySettingsPage() {
                                         type="password"
                                         className="bg-muted border-border"
                                         placeholder="••••••••"
+                                        value={settings.imapPassword || ""}
                                         onChange={(e) => setSettings(prev => ({ ...prev, imapPassword: e.target.value }))}
                                     />
                                     <p className="text-[10px] text-muted-foreground">Leave empty to use existing password.</p>
@@ -547,6 +556,7 @@ export default function CompanySettingsPage() {
                                     type="password"
                                     className="bg-muted border-border"
                                     placeholder="••••••••"
+                                    value={settings.s3SecretKey || ""}
                                     onChange={(e) => setSettings(prev => ({ ...prev, s3SecretKey: e.target.value }))}
                                 />
                                 <p className="text-[10px] text-muted-foreground">Leave empty to use existing secret key.</p>
@@ -558,6 +568,16 @@ export default function CompanySettingsPage() {
                                     value={settings.s3Region}
                                     onChange={(e) => setSettings(prev => ({ ...prev, s3Region: e.target.value }))}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Endpoint</Label>
+                                <Input
+                                    className="bg-muted border-border"
+                                    placeholder="https://s3.us-east-1.amazonaws.com"
+                                    value={settings.s3Endpoint}
+                                    onChange={(e) => setSettings(prev => ({ ...prev, s3Endpoint: e.target.value }))}
+                                />
+                                <p className="text-[10px] text-muted-foreground">Required for S3-compatible storage (Minio, R2, etc.). Leave empty for default AWS.</p>
                             </div>
                         </CardContent>
                         <div className="p-6 pt-0 flex justify-end">

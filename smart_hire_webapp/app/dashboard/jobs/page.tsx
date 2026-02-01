@@ -390,10 +390,10 @@ export default function JobsPage() {
             </div>
 
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="sm:max-w-md md:max-w-lg lg:max-w-xl p-0 overflow-hidden border-l border-border">
+                <SheetContent className="sm:max-w-md md:max-w-lg lg:max-w-xl p-0 flex flex-col gap-0 border-l border-border overflow-hidden">
                     {selectedJob && (
-                        <div className="flex flex-col h-full bg-background">
-                            <SheetHeader className="p-6 border-b border-border bg-card/30">
+                        <div className="flex flex-col flex-1 bg-background min-h-0">
+                            <SheetHeader className="p-6 border-b border-border bg-card/30 shrink-0">
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase font-bold tracking-wider px-2 py-0">
@@ -420,8 +420,8 @@ export default function JobsPage() {
                                 </div>
                             </SheetHeader>
 
-                            <ScrollArea className="flex-1 p-6">
-                                <div className="space-y-8 pb-8">
+                            <ScrollArea className="flex-1 h-full">
+                                <div className="p-6 space-y-8 pb-8">
                                     {/* Key Details Grid */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-4 rounded-xl border border-border bg-card/30 space-y-1">

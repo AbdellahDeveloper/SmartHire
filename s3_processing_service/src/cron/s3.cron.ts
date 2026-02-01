@@ -1,5 +1,6 @@
+import { S3Client } from "bun";
 import Baker from "cronbake";
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import { prisma } from "../db";
 
@@ -14,7 +15,7 @@ const BATCH_SIZE = parseInt(process.env.S3_BATCH_SIZE || "10");
 export async function processS3Account(credential: any) {
     console.log(`[CRON] Checking S3 bucket ${credential.bucket} on ${credential.endpoint}...`);
 
-    const s3 = new (Bun as any).S3({
+    const s3 = new S3Client({
         accessKeyId: credential.accessKey,
         secretAccessKey: credential.secretKey,
         endpoint: credential.endpoint,
@@ -26,12 +27,12 @@ export async function processS3Account(credential: any) {
         const lastChecked = credential.lastChecked;
         const result = await s3.list();
 
-        if (!result || !result.objects) {
+        if (!result || !result.contents) {
             console.log(`[CRON] No objects found in bucket ${credential.bucket}`);
             return;
         }
 
-        const newPdfs = result.objects.filter((obj: any) => {
+        const newPdfs = result.contents.filter((obj: any) => {
             const isPdf = obj.key.toLowerCase().endsWith(".pdf");
             const isNew = new Date(obj.lastModified) > lastChecked;
             return isPdf && isNew;
@@ -48,13 +49,11 @@ export async function processS3Account(credential: any) {
 
         for (const obj of newPdfs) {
             console.log(`[CRON] Downloading ${obj.key}...`);
-            const file = s3.file(obj.key);
-            const arrayBuffer = await file.arrayBuffer();
-
+            const s3File = s3.file(obj.key);
             const fileName = obj.key.split('/').pop() || "unnamed.pdf";
             const filePath = join(TMP_DIR, `${Date.now()}_${fileName}`);
 
-            writeFileSync(filePath, Buffer.from(arrayBuffer));
+            await Bun.write(filePath, s3File);
             console.log(`[CRON] Saved ${obj.key} to ${filePath}`);
 
             batch.push({ filePath, fileName });
@@ -137,8 +136,9 @@ async function handleDocumentsBulk(items: { filePath: string, fileName: string }
         console.error(`[CRON] Error in bulk handling:`, err);
     } finally {
         for (const item of items) {
-            if (existsSync(item.filePath)) {
-                unlinkSync(item.filePath);
+            const file = Bun.file(item.filePath);
+            if (await file.exists()) {
+                await file.delete();
                 console.log(`[CRON] Cleaned up temporary file: ${item.filePath}`);
             }
         }
