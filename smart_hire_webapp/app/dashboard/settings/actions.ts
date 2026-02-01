@@ -258,7 +258,7 @@ export async function connectMeetingAccount() {
         throw new Error("MCP Token not found for this company. Please complete MCP integration first.");
     }
 
-    const res = await fetch(`http://localhost:3012/connect-meeting-account`, {
+    const res = await fetch(`${process.env.MEET_SCHEDULER_IP}/connect-meeting-account`, {
         headers: {
             "Authorization": `Bearer ${company.mcpToken}`
         }

@@ -28,7 +28,7 @@ services:
     environment:
       NODE_ENV: production
       # Added replicaSet param
-      MONGODB_URL: mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      MONGODB_URL: mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -41,7 +41,7 @@ services:
     container_name: candidate-service
     environment:
       - PORT=3002
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENDPOINT=${ENDPOINT}
@@ -60,7 +60,7 @@ services:
     container_name: job-service
     environment:
       - PORT=3001
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
@@ -73,7 +73,7 @@ services:
     container_name: matching-service
     environment:
       - PORT=3004
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -88,7 +88,7 @@ services:
     container_name: report-service
     environment:
       - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - ENDPOINT=${ENDPOINT}
       - REGION=${REGION}
       - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
@@ -104,8 +104,8 @@ services:
     build: ./email_processing_service
     container_name: email-processing-service
     environment:
-      - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - PORT=3006
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -122,8 +122,8 @@ services:
     build: ./s3_processing_service
     container_name: s3-processing-service
     environment:
-      - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - PORT=3007
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -141,7 +141,7 @@ services:
     container_name: notification-service
     environment:
       - PORT=3015
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - MATCHING_SERVICE_URL=http://matching-service:3004/api
       - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL}
@@ -157,7 +157,7 @@ services:
     container_name: meet-scheduler
     environment:
       - PORT=3012
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI="http://meet-scheduler:3012/callback"
@@ -177,7 +177,7 @@ services:
       - "3003:3003"
     environment:
       - PORT=3003
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - MONGODB_DB_NAME=SmartHire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
       - JOB_SERVICE_URL=http://job-service:3001/api
@@ -205,11 +205,12 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3000
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
-      - MCP_SERVER_IP=http://localhost:3003/mcp
+      - MCP_SERVER_IP=http://mcp-server:3003/mcp
+      - MEET_SCHEDULER_IP=http://meet-scheduler:3012
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
@@ -226,6 +227,8 @@ services:
         condition: service_started
       candidate-service:
         condition: service_started
+      meet-scheduler:
+        condition: service_started
 
   mongodb:
     image: mongo:latest
@@ -239,20 +242,30 @@ services:
       - smarthire-network
     command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
-      test: >
-        mongosh --quiet --eval "
-          try {
-            if (rs.status().ok !== 1) {
-              rs.initiate();
-            }
-          } catch (e) {
-            rs.initiate();
-          }
-        " && mongosh --quiet --eval "db.adminCommand('ping').ok"
+      # Keep this simple! Just check if the service is alive.
+      test: mongosh --quiet --eval "db.adminCommand('ping').ok"
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  mongodb-setup:
+    image: mongo:latest
+    container_name: mongodb-setup
+    networks:
+      - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    entrypoint: >
+      bash -c '
+      echo "Connecting to MongoDB...";
+      until mongosh --host mongodb:27017 --eval "db.adminCommand(\"ping\")" &>/dev/null; do
+        sleep 2;
+      done;
+      echo "Force-initializing Replica Set with hostname...";
+      mongosh --host mongodb:27017 --eval "rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]})" || mongosh --host mongodb:27017 --eval "rs.reconfig({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]}, {force: true})";
+      echo "Setup complete!";'
 
 networks:
   smarthire-network:
