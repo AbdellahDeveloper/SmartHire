@@ -143,13 +143,34 @@ export async function uploadCandidates(formData: FormData) {
         return { success: false, error: "CANDIDATE_SERVICE_URL is not configured" };
     }
 
-    if (user.companyId) {
-        formData.append("companyId", user.companyId);
+    let targetCompanyId = user.companyId;
+    if (!targetCompanyId && user.role === 'admin') {
+        const firstCompany = await prisma.company.findFirst();
+        targetCompanyId = firstCompany?.id;
     }
+
+    if (!targetCompanyId) {
+        return { success: false, error: "No company found to upload candidates to. Please create a company first." };
+    }
+
+    const company = await prisma.company.findUnique({
+        where: { id: targetCompanyId },
+        select: { mcpToken: true }
+    });
+
+    if (!company?.mcpToken) {
+        return { success: false, error: "Target company has no MCP token configured." };
+    }
+
+    formData.delete("companyId");
+    formData.append("companyId", targetCompanyId);
 
     try {
         const response = await fetch(`${candidateServiceUrl}/candidates/bulk`, {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${company.mcpToken}`
+            },
             body: formData,
         });
 
