@@ -13,7 +13,6 @@ ENV NODE_ENV=production
 # TENANT_ID
 
 COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/prisma ./prisma
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/bun.lockb* ./
 COPY --from=base /app/src ./src
