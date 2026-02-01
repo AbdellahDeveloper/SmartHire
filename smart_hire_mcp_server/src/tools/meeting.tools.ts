@@ -4,7 +4,24 @@ import { meetingService, ScheduleMeetingRequest } from "../services/meeting.serv
 export const meetingToolDefinitions = [
     {
         name: "schedule_meeting",
-        description: "Schedule a Google Meet meeting with a candidate",
+        description: "Schedule a Google Meet meeting without sending an email notification",
+        inputSchema: {
+            type: "object",
+            properties: {
+                startTime: { type: "string", description: "The start time of the meeting in ISO format (e.g., 2024-03-20T10:00:00Z)" },
+                endTime: { type: "string", description: "The end time of the meeting in ISO format (e.g., 2024-03-20T11:00:00Z)" },
+                summary: { type: "string", description: "The summary/title of the meeting" },
+                description: { type: "string", description: "The description of the meeting" },
+            },
+            required: ["startTime", "endTime"],
+        },
+        _meta: {
+            needsApproval: true
+        }
+    },
+    {
+        name: "schedule_meeting_with_email",
+        description: "Schedule a Google Meet meeting with a candidate and send an email notification to that candidate",
         inputSchema: {
             type: "object",
             properties: {
@@ -13,7 +30,6 @@ export const meetingToolDefinitions = [
                 endTime: { type: "string", description: "The end time of the meeting in ISO format (e.g., 2024-03-20T11:00:00Z)" },
                 summary: { type: "string", description: "The summary/title of the meeting" },
                 description: { type: "string", description: "The description of the meeting" },
-                send: { type: "boolean", description: "Whether to send an invitation email to the candidate" }
             },
             required: ["candidateId", "startTime", "endTime"],
         },
@@ -28,8 +44,12 @@ export const handleMeetingTools = async (name: string, args: any) => {
         let response;
         switch (name) {
             case "schedule_meeting":
-                response = await meetingService.scheduleMeeting(args as ScheduleMeetingRequest);
-                console.log("Running schedule_meeting tool");
+                response = await meetingService.scheduleMeeting({ ...args, send: false } as ScheduleMeetingRequest);
+                console.log("Running schedule_meeting tool (no email)");
+                break;
+            case "schedule_meeting_with_email":
+                response = await meetingService.scheduleMeeting({ ...args, send: true } as ScheduleMeetingRequest);
+                console.log("Running schedule_meeting_with_email tool");
                 break;
             default:
                 return null;

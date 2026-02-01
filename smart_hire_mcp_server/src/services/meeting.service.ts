@@ -4,7 +4,7 @@ const MEETING_SERVICE_URL = process.env.MEETING_SERVICE_URL || "http://meet-sche
 const client = createServiceClient(MEETING_SERVICE_URL);
 
 export interface ScheduleMeetingRequest {
-    candidateId: string;
+    candidateId?: string;
     startTime: string;
     endTime: string;
     summary?: string;
