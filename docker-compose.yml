@@ -1,4 +1,3 @@
-
 services:
   teams-bot:
     build:
@@ -13,7 +12,6 @@ services:
       CLIENT_SECRET: ${CLIENT_SECRET}
       TENANT_ID: ${TENANT_ID}
       AI_SERVICE_URL: http://ai-interface:3040
-
     restart: unless-stopped
     depends_on:
       - ai-interface
@@ -29,10 +27,12 @@ services:
       - "3040:3040"
     environment:
       NODE_ENV: production
-      MONGODB_URL: mongodb://mongodb:27017/smart_hire
+      # Added replicaSet param
+      MONGODB_URL: mongodb://mongodb:27017/smart_hire?replicaSet=rs0
     restart: unless-stopped
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - smarthire-network
 
@@ -41,7 +41,7 @@ services:
     container_name: candidate-service
     environment:
       - PORT=3002
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENDPOINT=${ENDPOINT}
@@ -51,35 +51,44 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   job-service:
     build: ./job_service
     container_name: job-service
     environment:
       - PORT=3001
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   matching-service:
     build: ./matching_service
     container_name: matching-service
     environment:
       - PORT=3004
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - UPSTASH_SEARCH_REST_URL=${UPSTASH_SEARCH_REST_URL}
       - UPSTASH_SEARCH_REST_TOKEN=${UPSTASH_SEARCH_REST_TOKEN}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   report-service:
     build: ./report_service
     container_name: report-service
     environment:
       - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - ENDPOINT=${ENDPOINT}
       - REGION=${REGION}
       - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
@@ -87,13 +96,16 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   email-processing-service:
     build: ./email_processing_service
     container_name: email-processing-service
     environment:
       - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -102,13 +114,16 @@ services:
       - ACCESS_KEY_ID=${ACCESS_KEY_ID}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   s3-processing-service:
     build: ./s3_processing_service
     container_name: s3-processing-service
     environment:
       - PORT=3005
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENDPOINT=${ENDPOINT}
@@ -117,32 +132,41 @@ services:
       - ACCESS_KEY_ID=${ACCESS_KEY_ID}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   notification-service:
     build: ./notification_service
     container_name: notification-service
     environment:
       - PORT=3015
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - MATCHING_SERVICE_URL=http://matching-service:3004/api
       - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   meet-scheduler:
     build: ./meet_scheduler
     container_name: meet-scheduler
     environment:
       - PORT=3012
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI="http://meet-scheduler:3012/callback"
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   mcp-server:
     build: ./smart_hire_mcp_server
@@ -151,7 +175,7 @@ services:
       - "3003:3003"
     environment:
       - PORT=3003
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - MONGODB_DB_NAME=SmartHire
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
       - JOB_SERVICE_URL=http://job-service:3001/api
@@ -161,10 +185,16 @@ services:
     networks:
       - smarthire-network
     depends_on:
-      - candidate-service
-      - job-service
-      - matching-service
-      - report-service
+      mongodb:
+        condition: service_healthy
+      candidate-service:
+        condition: service_started
+      job-service:
+        condition: service_started
+      matching-service:
+        condition: service_started
+      report-service:
+        condition: service_started
 
   smarthire:
     build: ./smart_hire_webapp
@@ -173,7 +203,7 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - MONGODB_URL=mongodb://mongodb:27017/smart_hire
+      - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3000
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api
@@ -205,12 +235,22 @@ services:
       - mongodb_data:/data/db
     networks:
       - smarthire-network
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: >
+        mongosh --quiet --eval "
+          try {
+            if (rs.status().ok !== 1) {
+              rs.initiate();
+            }
+          } catch (e) {
+            rs.initiate();
+          }
+        " && mongosh --quiet --eval "db.adminCommand('ping').ok"
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
 networks:
   smarthire-network:
