@@ -185,6 +185,7 @@ services:
       - JOB_SERVICE_URL=http://job-service:3001/api
       - MATCHING_SERVICE_URL=http://matching-service:3004/api
       - REPORT_SERVICE_URL=http://report-service:3005/api
+      - MEETING_SERVICE_URL=http://meet-scheduler:3012
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
