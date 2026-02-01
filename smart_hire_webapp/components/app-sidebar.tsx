@@ -8,7 +8,8 @@ import {
     History,
     LayoutDashboard,
     Settings,
-    ShieldCheck
+    ShieldCheck,
+    Users
 } from "lucide-react"
 import * as React from "react"
 
@@ -46,11 +47,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             },
         ],
         management: [
-            ...(role === "admin" ? [{
-                title: "Companies",
-                url: "/dashboard/companies",
-                icon: Building2,
-            }] : []),
+            ...(role === "admin" ? [
+                {
+                    title: "Companies",
+                    url: "/dashboard/companies",
+                    icon: Building2,
+                },
+                {
+                    title: "Candidates",
+                    url: "/dashboard/candidates",
+                    icon: Users,
+                }
+            ] : []),
             {
                 title: "Jobs",
                 url: "/dashboard/jobs",
