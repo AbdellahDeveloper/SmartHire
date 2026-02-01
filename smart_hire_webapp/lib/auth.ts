@@ -26,5 +26,6 @@ export const auth = betterAuth({
                 required: false,
             }
         }
-    }
+    },
+    baseURL:process.env.BETTER_AUTH_URL
 });
