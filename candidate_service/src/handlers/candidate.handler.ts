@@ -44,6 +44,7 @@ export const getDocumentType = async (file: File): Promise<{ success: boolean; t
     try {
         const options = ['CV', 'JOB', 'NONE']
         if (!file) {
+            console.log(`[DEBUG] No file provided`);
             return { success: false, type: 'NONE' }
         }
 
@@ -63,8 +64,10 @@ export const getDocumentType = async (file: File): Promise<{ success: boolean; t
             messages: [{ role: 'user', content }]
         })
         const validResult = options.includes(result) ? result as DocumentType : 'NONE'
+        console.log(`[DEBUG] Document type for ${file.name}: ${validResult}`);
         return { success: true, type: validResult, reasoning: result }
     } catch (error: any) {
+        console.error("Document Type Error:", error);
         return { success: false, type: 'NONE', reasoning: error.message }
     }
 }

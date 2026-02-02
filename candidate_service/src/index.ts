@@ -12,7 +12,7 @@ const app = new Elysia()
     .group('/api', (app) => app.use(candidateRoutes))
     .listen({
         port: 3002,
-        maxRequestBodySize: 1024 * 1024 * 50
+        maxRequestBodySize: 1024 * 1024 * 1024
     })
 
 console.log(

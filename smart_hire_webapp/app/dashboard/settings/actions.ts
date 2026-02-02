@@ -336,3 +336,73 @@ export async function connectMeetingAccount() {
         return { success: false, error: error.message || "Failed to connect meeting account" };
     }
 }
+
+export async function triggerS3Sync(companyId: string) {
+    try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        if (!session || (session.user as any).role !== "company" || (session.user as any).companyId !== companyId) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        const company = await prisma.company.findUnique({
+            where: { id: companyId },
+            select: { mcpToken: true }
+        });
+
+        if (!company?.mcpToken) {
+            return { success: false, error: "MCP Token not found" };
+        }
+
+        const res = await fetch(`${process.env.S3_SERVICE_URL}/s3/sync`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${company.mcpToken}`
+            }
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            return { success: false, error: errorData.error || "Failed to trigger S3 sync" };
+        }
+
+        return await res.json();
+    } catch (error: any) {
+        console.error("Failed to trigger S3 sync:", error);
+        return { success: false, error: error.message || "Failed to trigger S3 sync" };
+    }
+}
+
+export async function triggerEmailSync(companyId: string) {
+    try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        if (!session || (session.user as any).role !== "company" || (session.user as any).companyId !== companyId) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        const company = await prisma.company.findUnique({
+            where: { id: companyId },
+            select: { mcpToken: true }
+        });
+
+        if (!company?.mcpToken) {
+            return { success: false, error: "MCP Token not found" };
+        }
+
+        const res = await fetch(`${process.env.EMAIL_SERVICE_URL}/mail/sync`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${company.mcpToken}`
+            }
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            return { success: false, error: errorData.error || "Failed to trigger email sync" };
+        }
+
+        return await res.json();
+    } catch (error: any) {
+        console.error("Failed to trigger email sync:", error);
+        return { success: false, error: error.message || "Failed to trigger email sync" };
+    }
+}

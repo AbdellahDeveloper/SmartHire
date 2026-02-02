@@ -1,4 +1,5 @@
 import Baker from "cronbake";
+import CryptoJS from "crypto-js";
 import { createWriteStream, existsSync, mkdirSync, unlinkSync } from "fs";
 import { ImapFlow } from "imapflow";
 import { join } from "path";
@@ -13,7 +14,21 @@ if (!existsSync(TMP_DIR)) {
 const CANDIDATE_SERVICE_URL = process.env.CANDIDATE_SERVICE_URL || "http://127.0.0.1:3002/api/candidates";
 const BATCH_SIZE = 5;
 
-async function processEmailAccount(userMail: {
+
+function decrypt(ciphertext: string): string {
+    try {
+        const bytes = CryptoJS.AES.decrypt(ciphertext, process.env.ENCRYPTION_KEY || "");
+        const originalText = bytes.toString(CryptoJS.enc.Utf8);
+        if (!originalText) {
+            return ciphertext;
+        }
+        return originalText;
+    } catch (e) {
+        return ciphertext;
+    }
+}
+
+export async function processEmailAccount(userMail: {
     lastChecked: Date;
     id: string;
     server: string;
@@ -23,9 +38,11 @@ async function processEmailAccount(userMail: {
     companyId: string;
     createdAt: Date;
     updatedAt: Date;
-}) {
+}, isManual: boolean = false) {
+    const action = isManual ? "MANUAL" : "CRON";
     console.log(`[CRON] Checking emails for ${userMail.email}...`);
 
+    userMail.password = decrypt(userMail.password);
     const client = new ImapFlow({
         host: userMail.server,
         port: userMail.port,
@@ -54,7 +71,27 @@ async function processEmailAccount(userMail: {
             }
             console.log(`[CRON] Found ${uids.length} potential messages since ${sinceDate.toISOString()}`);
 
+            // Log finding emails
+            await prisma.serviceLog.create({
+                data: {
+                    companyId: userMail.companyId,
+                    service: "EMAIL",
+                    action: action,
+                    status: "INFO",
+                    message: `Found ${uids.length} potential messages since ${sinceDate.toISOString()}`
+                }
+            });
+
             const batch: { filePath: string, fileName: string }[] = [];
+
+            let mcpToken: string | undefined;
+            if (userMail.companyId) {
+                const company = await prisma.company.findUnique({
+                    where: { id: userMail.companyId },
+                    select: { mcpToken: true }
+                });
+                mcpToken = company?.mcpToken || undefined;
+            }
 
             for (const uid of uids) {
                 const msg = await client.fetchOne(uid.toString(), {
@@ -102,8 +139,20 @@ async function processEmailAccount(userMail: {
 
                         batch.push({ filePath, fileName: part.fileName || `attachment_${msg.uid}_${part.part}.pdf` });
 
+                        // Log processing attachment
+                        await prisma.serviceLog.create({
+                            data: {
+                                companyId: userMail.companyId,
+                                service: "EMAIL",
+                                action: action,
+                                status: "SUCCESS",
+                                message: `Processed attachment from email`,
+                                fileName: part.fileName
+                            }
+                        });
+
                         if (batch.length >= BATCH_SIZE) {
-                            await handleDocumentsBulk(batch, userMail.companyId);
+                            await handleDocumentsBulk(batch, userMail.companyId, mcpToken);
                             batch.length = 0;
                         }
 
@@ -117,7 +166,7 @@ async function processEmailAccount(userMail: {
             }
 
             if (batch.length > 0) {
-                await handleDocumentsBulk(batch, userMail.companyId);
+                await handleDocumentsBulk(batch, userMail.companyId, mcpToken);
             }
 
             await prisma.userMail.update({
@@ -162,11 +211,15 @@ export function findPdfParts(structure: any, parts: any[] = []) {
     return parts;
 }
 
-async function handleDocumentsBulk(items: { filePath: string, fileName: string }[], companyId: string) {
+async function handleDocumentsBulk(items: { filePath: string, fileName: string }[], companyId: string, mcpToken?: string) {
     if (items.length === 0) return;
 
     try {
         const cvItems: { filePath: string, fileName: string }[] = [];
+        const headers: Record<string, string> = {};
+        if (mcpToken) {
+            headers["Authorization"] = `Bearer ${mcpToken}`;
+        }
 
         for (const item of items) {
             console.log(`[CRON] Detecting document type for ${item.fileName}...`);
@@ -176,8 +229,14 @@ async function handleDocumentsBulk(items: { filePath: string, fileName: string }
 
             const typeResponse = await fetch(`${CANDIDATE_SERVICE_URL}/document-type`, {
                 method: "POST",
+                headers: headers,
                 body: formData
             });
+
+            if (!typeResponse.ok) {
+                console.error(`[CRON] Failed to check document type for ${item.fileName}: ${typeResponse.statusText}`);
+                continue;
+            }
 
             const typeResult: any = await typeResponse.json();
             if (typeResult.success && typeResult.type === "CV") {
@@ -201,6 +260,7 @@ async function handleDocumentsBulk(items: { filePath: string, fileName: string }
 
             const bulkResponse = await fetch(`${CANDIDATE_SERVICE_URL}/bulk`, {
                 method: "POST",
+                headers: headers,
                 body: bulkFormData
             });
 
@@ -232,7 +292,7 @@ export function startEmailCron() {
 
     baker.add({
         name: "email-processing",
-        cron: process.env.EMAIL_CHECK_CRON || "0 */15 * * * *",
+        cron: process.env.EMAIL_CHECK_CRON || "0 0 * * * *", // Per hour 
         callback: async () => {
             console.log("[CRON] Starting periodic email check...");
             const accounts = await prisma.userMail.findMany();

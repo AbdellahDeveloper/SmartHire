@@ -11,7 +11,7 @@ import { mcpAuth } from '../lib/mcp-auth.middleware'
 export const candidateRoutes = new Elysia({ prefix: '/candidates' })
     .use(mcpAuth)
 
-    .get('/:id', ({ params: { id }, companyId }) => getCandidateById(id, companyId!))
+    .get('/:id', ({ params: { id }, companyId }) => getCandidateById(id))
 
     .post('/', ({ body, companyId }) => {
         const { file, jobId, updateIfExists } = body

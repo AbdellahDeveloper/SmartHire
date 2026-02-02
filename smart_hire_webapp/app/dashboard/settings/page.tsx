@@ -11,7 +11,7 @@ import { CheckCircle, ExternalLink, Plus, RefreshCw, Save, Trash2, X } from "luc
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { connectMeetingAccount, getCompanySettings, getMeetingConnection, revokeMeetingConnection, updateIMAPSettings, updateS3Settings, updateSMTPSettings, updateTeamsConversationIds } from "./actions";
+import { connectMeetingAccount, getCompanySettings, getMeetingConnection, revokeMeetingConnection, triggerEmailSync, triggerS3Sync, updateIMAPSettings, updateS3Settings, updateSMTPSettings, updateTeamsConversationIds } from "./actions";
 
 export default function CompanySettingsPage() {
     const { data: session } = useSession();
@@ -20,6 +20,7 @@ export default function CompanySettingsPage() {
     const [smtpLoading, setSmtpLoading] = useState(false);
     const [imapLoading, setImapLoading] = useState(false);
     const [s3Loading, setS3Loading] = useState(false);
+    const [syncLoading, setSyncLoading] = useState(false);
 
     // Type definition forsettings state matching the interface in actions
     interface SettingsState {
@@ -243,6 +244,36 @@ export default function CompanySettingsPage() {
         setS3Loading(false);
     };
 
+    const handleManualS3Sync = async () => {
+        const companyId = (session?.user as { companyId?: string })?.companyId;
+        if (!companyId) return;
+
+        setSyncLoading(true);
+        const result = await triggerS3Sync(companyId);
+        if (result.success) {
+            toast.success("S3 Manual Sync completed");
+            router.refresh();
+        } else {
+            toast.error(result.error || "Failed to trigger S3 sync");
+        }
+        setSyncLoading(false);
+    };
+
+    const handleManualEmailSync = async () => {
+        const companyId = (session?.user as { companyId?: string })?.companyId;
+        if (!companyId) return;
+
+        setSyncLoading(true);
+        const result = await triggerEmailSync(companyId);
+        if (result.success) {
+            toast.success("Email Manual Sync completed");
+            router.refresh();
+        } else {
+            toast.error(result.error || "Failed to trigger email sync");
+        }
+        setSyncLoading(false);
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
             <div>
@@ -455,11 +486,29 @@ export default function CompanySettingsPage() {
 
                         {/* IMAP Card */}
                         <Card className="bg-card/50 border-border backdrop-blur-sm flex flex-col">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    IMAP Configuration
-                                </CardTitle>
-                                <CardDescription>Settings for receiving inbound emails.</CardDescription>
+                            <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                                <div className="space-y-1.5">
+                                    <CardTitle className="flex items-center gap-2">
+                                        IMAP Configuration
+                                    </CardTitle>
+                                    <CardDescription>Settings for receiving inbound emails.</CardDescription>
+                                </div>
+                                {settings.imapEmail && settings.imapServer && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleManualEmailSync}
+                                        disabled={syncLoading}
+                                        className="border-primary/30 text-primary hover:bg-primary/5 h-8"
+                                    >
+                                        {syncLoading ? (
+                                            <RefreshCw className="mr-2 h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                                        )}
+                                        Sync Now
+                                    </Button>
+                                )}
                             </CardHeader>
                             <CardContent className="space-y-4 flex-1">
                                 <div className="grid grid-cols-1 gap-4">
@@ -529,9 +578,27 @@ export default function CompanySettingsPage() {
 
                 <TabsContent value="storage" className="space-y-4">
                     <Card className="bg-card/50 border-border backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle>AWS S3 Configuration</CardTitle>
-                            <CardDescription>Storage for candidate resumes and documents.</CardDescription>
+                        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                            <div className="space-y-1.5">
+                                <CardTitle>AWS S3 Configuration</CardTitle>
+                                <CardDescription>Storage for candidate resumes and documents.</CardDescription>
+                            </div>
+                            {settings.s3Bucket && settings.s3AccessKey && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleManualS3Sync}
+                                    disabled={syncLoading}
+                                    className="border-primary/30 text-primary hover:bg-primary/5 h-8"
+                                >
+                                    {syncLoading ? (
+                                        <RefreshCw className="mr-2 h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                                    )}
+                                    Sync Now
+                                </Button>
+                            )}
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">

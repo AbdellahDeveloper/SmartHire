@@ -1,5 +1,6 @@
 import { S3Client } from "bun";
 import Baker from "cronbake";
+import CryptoJS from "crypto-js";
 import { existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import { prisma } from "../db";
@@ -12,9 +13,25 @@ if (!existsSync(TMP_DIR)) {
 const CANDIDATE_SERVICE_URL = process.env.CANDIDATE_SERVICE_URL || "http://127.0.0.1:3002/api/candidates";
 const BATCH_SIZE = parseInt(process.env.S3_BATCH_SIZE || "10");
 
-export async function processS3Account(credential: any) {
-    console.log(`[CRON] Checking S3 bucket ${credential.bucket} on ${credential.endpoint}...`);
 
+function decrypt(ciphertext: string): string {
+    try {
+        const bytes = CryptoJS.AES.decrypt(ciphertext, process.env.ENCRYPTION_KEY || "");
+        const originalText = bytes.toString(CryptoJS.enc.Utf8);
+        if (!originalText) {
+            return ciphertext;
+        }
+        return originalText;
+    } catch (e) {
+        return ciphertext;
+    }
+}
+
+
+export async function processS3Account(credential: any, isManual: boolean = false) {
+    const action = isManual ? "MANUAL" : "CRON";
+    console.log(`[CRON] Checking S3 bucket ${credential.bucket} on ${credential.endpoint}...`);
+    credential.secretKey = decrypt(credential.secretKey);
     const s3 = new S3Client({
         accessKeyId: credential.accessKey,
         secretAccessKey: credential.secretKey,
@@ -45,7 +62,26 @@ export async function processS3Account(credential: any) {
 
         console.log(`[CRON] Found ${newPdfs.length} new PDF files in bucket ${credential.bucket}`);
 
+        await prisma.serviceLog.create({
+            data: {
+                companyId: credential.companyId,
+                service: "S3",
+                action: action,
+                status: "INFO",
+                message: `Found ${newPdfs.length} new PDF files in bucket ${credential.bucket}`
+            }
+        });
+
         const batch: { filePath: string, fileName: string }[] = [];
+
+        let mcpToken: string | undefined;
+        if (credential.companyId) {
+            const company = await prisma.company.findUnique({
+                where: { id: credential.companyId },
+                select: { mcpToken: true }
+            });
+            mcpToken = company?.mcpToken || undefined;
+        }
 
         for (const obj of newPdfs) {
             console.log(`[CRON] Downloading ${obj.key}...`);
@@ -58,14 +94,26 @@ export async function processS3Account(credential: any) {
 
             batch.push({ filePath, fileName });
 
+            // Log processing file
+            await prisma.serviceLog.create({
+                data: {
+                    companyId: credential.companyId,
+                    service: "S3",
+                    action: action,
+                    status: "SUCCESS",
+                    message: `Processed file from S3`,
+                    fileName: fileName
+                }
+            });
+
             if (batch.length >= BATCH_SIZE) {
-                await handleDocumentsBulk(batch, credential.companyId);
+                await handleDocumentsBulk(batch, credential.companyId, mcpToken);
                 batch.length = 0;
             }
         }
 
         if (batch.length > 0) {
-            await handleDocumentsBulk(batch, credential.companyId);
+            await handleDocumentsBulk(batch, credential.companyId, mcpToken);
         }
 
         await prisma.s3Credential.update({
@@ -78,11 +126,15 @@ export async function processS3Account(credential: any) {
     }
 }
 
-async function handleDocumentsBulk(items: { filePath: string, fileName: string }[], companyId: string | null) {
+async function handleDocumentsBulk(items: { filePath: string, fileName: string }[], companyId: string | null, mcpToken?: string) {
     if (items.length === 0) return;
 
     try {
         const cvItems: { filePath: string, fileName: string }[] = [];
+        const headers: Record<string, string> = {};
+        if (mcpToken) {
+            headers["Authorization"] = `Bearer ${mcpToken}`;
+        }
 
         for (const item of items) {
             console.log(`[CRON] Detecting document type for ${item.fileName}...`);
@@ -92,11 +144,13 @@ async function handleDocumentsBulk(items: { filePath: string, fileName: string }
 
             const typeResponse = await fetch(`${CANDIDATE_SERVICE_URL}/document-type`, {
                 method: "POST",
+                headers: headers,
                 body: formData
             });
+            console.log("Type Response:", typeResponse);
 
             if (!typeResponse.ok) {
-                console.error(`[CRON] Failed to check document type for ${item.fileName}`);
+                console.error(`[CRON] Failed to check document type for ${item.fileName}: ${typeResponse.statusText}`);
                 continue;
             }
 
@@ -122,6 +176,7 @@ async function handleDocumentsBulk(items: { filePath: string, fileName: string }
 
             const bulkResponse = await fetch(`${CANDIDATE_SERVICE_URL}/bulk`, {
                 method: "POST",
+                headers: headers,
                 body: bulkFormData
             });
 

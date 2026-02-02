@@ -7,10 +7,10 @@ const app = new Elysia()
     console.error(`[ELYSIA ERROR] ${code}:`, error);
     return { success: false, error: (error as any).message || 'Unknown error' };
   })
-  .get('/', ({}) => 'Email Processing Service is running')
-  .group('/api', (app) => app.use(mailRoutes))
+  .get('/', ({ }) => 'Email Processing Service is running')
+  .use(mailRoutes)
   .listen({
-    port: 3005,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3005,
     maxRequestBodySize: 1024 * 1024 * 50
   })
 
