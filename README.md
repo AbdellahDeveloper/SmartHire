@@ -163,6 +163,14 @@ UPSTASH_SEARCH_REST_TOKEN=
 # Upstash API token.
 # Get from Upstash console → REST Token.
 
+S3_CV_BUCKET_NAME=
+# Name of the S3 bucket where CVs/resumes are stored.
+
+S3_CONTRACTS_BUCKET_NAME=
+# Name of the S3 bucket where contract documents are stored.
+
+S3_MATCHING_REPORTS_BUCKET_NAME=
+# Name of the S3 bucket where matching analysis reports are stored.
 
 ENDPOINT=
 # S3 storage endpoint (AWS S3, MinIO, Supabase Storage etc.)
@@ -199,7 +207,6 @@ NEXT_PUBLIC_WEBSITE_URL=http://localhost:3000
 BETTER_AUTH_URL=http://localhost:3000
 # Base URL of the web app for authentication callbacks.
 
-
 GOOGLE_CLIENT_ID=
 # Google OAuth Client ID
 # This is the public identifier of your Google OAuth application.
@@ -207,7 +214,6 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 # Google OAuth Client Secret
 # This is the private secret key linked to your Google OAuth application.
-
 
 GOOGLE_REDIRECT_URI=
 # meet scheduler call back url ex : http://localhost:3012/callback
