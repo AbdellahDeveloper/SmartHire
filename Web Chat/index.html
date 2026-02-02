@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Assistant Demo</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #cbd5e1;
+      margin-bottom: 30px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 25px;
+      border-radius: 14px;
+      margin-bottom: 30px;
+      text-align: left;
+      line-height: 1.6;
+      backdrop-filter: blur(10px);
+    }
+
+    .info-box strong {
+      color: #7dd3fc;
+    }
+
+    .chat-wrapper {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 520px;
+      border: none;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>AI Assistant Live Demo</h1>
+    <p class="subtitle">Test the bot instantly — no Microsoft Teams setup required</p>
+
+    <div class="info-box">
+      <p><strong>What is this?</strong><br>
+      This is a web-based simulation of the assistant that normally runs inside Microsoft Teams.</p>
+
+      <p><strong>Important to know:</strong><br>
+      This demo version runs with a lighter model and simplified environment, so it may not be as powerful or feature-complete as the main application.</p>
+
+      <p><strong>Why use it?</strong><br>
+      It’s a fast and easy way to experiment, test conversations, and see how the chat experience works before using the full system.</p>
+    </div>
+
+    <div class="chat-wrapper">
+      <iframe
+        src="https://webchat.botframework.com/embed/ABM_bot?s=4R13H3wmne6Z8w4m9PkQtKFgLzAjVR2EZxyToO0Vi54243U6H9qoJQQJ99CAACZoyfiAArohAAABAZBS4AUY.FjGFAq2ISQLWZbETG5EhXmVYy1V3IhsaKVTY4cNRHmV4BjHhx2XRJQQJ99CAACZoyfiAArohAAABAZBSU1W1"
+        allow="microphone;"
+      ></iframe>
+    </div>
+
+    <div class="footer">
+      Demo environment • For testing and exploration purposes
+    </div>
+  </div>
+</body>
+</html>
