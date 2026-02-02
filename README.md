@@ -4,6 +4,25 @@ SmartHire AI is a state-of-the-art, microservices-based recruitment ecosystem de
 
 ---
 
+🚀 Live Demo Access
+
+You can try the platform right now — everything is fully set up and ready to use.
+
+📊 Dashboard Access:
+Log in to the dashboard and explore features:
+
+Email: r5bg011edh@bltiwd.com
+Password: Qsdf@9876
+👉 [Dashboard Link](https://smarthire.fun/setup)
+
+💬 Chat Interface:
+You can talk directly with the AI and see conversations live:
+👉 [Chat Interface Link](https://chat.smarthire.fun)
+
+**No setup required — just open the links, log in, and start interacting with the system.**
+
+---
+
 ## 🛠 Technology Stack
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
@@ -194,6 +213,7 @@ GOOGLE_REDIRECT_URI=
 ```
 
 - Build and start all services:
+
 ```bash
 docker compose build
 docker-compose --env-file .env up -d
@@ -233,12 +253,13 @@ This configures the system.
 ### Create a Company
 
 After setup:
+
 - Go to Company
 - Click Add Company
 
-    Enter:
-    - Company name
-    - Company email
+  Enter:
+  - Company name
+  - Company email
 
 The system will send an invitation email.
 
@@ -252,14 +273,15 @@ Now the company account exists.
 
 **Log out** from the admin account and log in to the **company account** to continue next steps
 
-
-### Connect Microsoft Teams (Bot Setup)  
+### Connect Microsoft Teams (Bot Setup)
 
 You must link the app to Teams using a **Conversation ID**.
 
-#### Step 1 : Expose your local bot using ngrok  
+#### Step 1 : Expose your local bot using ngrok
+
 On the server where Teams Bot is running:
-``` bash 
+
+```bash
 ngrok http 3978
 ```
 
@@ -279,7 +301,7 @@ https://YOUR_NGROK_URL/api/messages
 
 Step 3 — Get the Conversation ID
 
-*You can test this from the Azure portal web chat.*
+_You can test this from the Azure portal web chat._
 
 Send a message  
 The bot will reply with your Conversation ID
@@ -295,15 +317,14 @@ Paste the Conversation ID into the Teams Conversation ID field
 
 Your system is now connected.
 
-You can:  
-- Upload CVs  
-- Chat with the bot  
-- Start using the system  
+You can:
+
+- Upload CVs
+- Chat with the bot
+- Start using the system
 
 ⚠️ Important:
 The database starts empty, so upload CVs first to see real results.
-
-
 
 ---
 
