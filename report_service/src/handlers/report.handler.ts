@@ -162,7 +162,7 @@ export const generateContract = async (body: {
         const buffer = Buffer.from(bytes);
 
         const fileName = `contract_${candidate.fullName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-        const s3Info = await uploadToS3("contracts", fileName, buffer);
+        const s3Info = await uploadToS3(process.env.S3_CONTRACTS_BUCKET_NAME || "contracts", fileName, buffer);
 
         return {
             success: true,
@@ -261,7 +261,7 @@ export const generateMatchingReport = async (body: {
         const buffer = Buffer.from(bytes);
 
         const fileName = `matching_report_${job.title.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-        const s3Info = await uploadToS3("matching_reports", fileName, buffer);
+        const s3Info = await uploadToS3(process.env.S3_MATCHING_REPORTS_BUCKET_NAME || "matching_reports", fileName, buffer);
 
         // Save to DB
         const dbReport = await prisma.matchingReport.create({

@@ -4,20 +4,21 @@ SmartHire AI is a state-of-the-art, microservices-based recruitment ecosystem de
 
 ---
 
-🚀 Live Demo Access
+## Live Demo Access
 
-You can try the platform right now — everything is fully set up and ready to use.
+The SmartHire AI platform is fully deployed and ready for use. You can explore the system immediately using the credentials provided below.
 
-📊 Dashboard Access:
-Log in to the dashboard and explore features:
+### 📊 System Entry Points
 
-Email: r5bg011edh@bltiwd.com
+* **Dashboard:** [smarthire.fun](https://smarthire.fun)
+* **Chat Interface:** [chat.smarthire.fun](https://chat.smarthire.fun)
+
+### 🔑 Demo Credentials
+
+```credentials
+Email:    r5bg011edh@bltiwd.com
 Password: Qsdf@9876
-👉 [Dashboard Link](https://smarthire.fun/setup)
-
-💬 Chat Interface:
-You can talk directly with the AI and see conversations live:
-👉 [Chat Interface Link](https://chat.smarthire.fun)
+```
 
 **No setup required — just open the links, log in, and start interacting with the system.**
 
@@ -162,6 +163,14 @@ UPSTASH_SEARCH_REST_TOKEN=
 # Upstash API token.
 # Get from Upstash console → REST Token.
 
+S3_CV_BUCKET_NAME=
+# Name of the S3 bucket where CVs/resumes are stored.
+
+S3_CONTRACTS_BUCKET_NAME=
+# Name of the S3 bucket where contract documents are stored.
+
+S3_MATCHING_REPORTS_BUCKET_NAME=
+# Name of the S3 bucket where matching analysis reports are stored.
 
 ENDPOINT=
 # S3 storage endpoint (AWS S3, MinIO, Supabase Storage etc.)
@@ -198,7 +207,6 @@ NEXT_PUBLIC_WEBSITE_URL=http://localhost:3000
 BETTER_AUTH_URL=http://localhost:3000
 # Base URL of the web app for authentication callbacks.
 
-
 GOOGLE_CLIENT_ID=
 # Google OAuth Client ID
 # This is the public identifier of your Google OAuth application.
@@ -206,7 +214,6 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 # Google OAuth Client Secret
 # This is the private secret key linked to your Google OAuth application.
-
 
 GOOGLE_REDIRECT_URI=
 # meet scheduler call back url ex : http://localhost:3012/callback
