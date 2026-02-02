@@ -146,7 +146,6 @@ services:
       - MONGODB_URL=mongodb://mongodb:27017/smart_hire?replicaSet=rs0&directConnection=true
       - CANDIDATE_SERVICE_URL=http://candidate-service:3002/api/candidates
       - MATCHING_SERVICE_URL=http://matching-service:3004/api
-      - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     networks:
       - smarthire-network
