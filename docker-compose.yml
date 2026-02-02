@@ -272,7 +272,12 @@ services:
       echo "Force-initializing Replica Set with hostname...";
       mongosh --host mongodb:27017 --eval "rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]})" || mongosh --host mongodb:27017 --eval "rs.reconfig({_id: \"rs0\", members: [{_id: 0, host: \"mongodb:27017\"}]}, {force: true})";
       echo "Setup complete!";'
-
+  webchat:
+    build: "./Web Chat"
+    container_name: webchat-app
+    ports:
+      - "3051:3051"
+    restart: unless-stopped
 networks:
   smarthire-network:
     driver: bridge
