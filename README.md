@@ -4,20 +4,21 @@ SmartHire AI is a state-of-the-art, microservices-based recruitment ecosystem de
 
 ---
 
-🚀 Live Demo Access
+## Live Demo Access
 
-You can try the platform right now — everything is fully set up and ready to use.
+The SmartHire AI platform is fully deployed and ready for use. You can explore the system immediately using the credentials provided below.
 
-📊 Dashboard Access:
-Log in to the dashboard and explore features:
+### 📊 System Entry Points
 
-Email: r5bg011edh@bltiwd.com
+* **Dashboard:** [smarthire.fun](https://smarthire.fun)
+* **Chat Interface:** [chat.smarthire.fun](https://chat.smarthire.fun)
+
+### 🔑 Demo Credentials
+
+```credentials
+Email:    r5bg011edh@bltiwd.com
 Password: Qsdf@9876
-👉 [Dashboard Link](https://smarthire.fun/setup)
-
-💬 Chat Interface:
-You can talk directly with the AI and see conversations live:
-👉 [Chat Interface Link](https://chat.smarthire.fun)
+```
 
 **No setup required — just open the links, log in, and start interacting with the system.**
 
