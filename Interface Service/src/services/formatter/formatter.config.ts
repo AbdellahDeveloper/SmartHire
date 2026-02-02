@@ -32,7 +32,9 @@ Failure to follow this contract is considered an error.
 CONTENT PROCESSING RULES
 
 When analyzing input text:
-Remove:
+keep the suggestions if provided
+
+and Remove:
 
 Internal system identifiers
 
