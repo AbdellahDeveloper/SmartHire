@@ -11,16 +11,17 @@ import { wait } from "../utils/utils";
 export async function messageHandler(receivedMessage: messageReq) {
   console.log("GOT NEW MSG");
 
-  //auth layer
+  // //auth layer
   let token;
-  token = await GetTokenFromCid(receivedMessage.conversationId);
+  // token = await GetTokenFromCid(receivedMessage.conversationId);
+  token = (
+    await prisma.company.findFirst({
+      where: {},
+    })
+  )?.mcpToken;
 
   if (!token) {
-    return (
-      "[FINAL_DATA:] unauthorized\n\nhere is your Conversation Id : '" +
-      receivedMessage.conversationId +
-      "'\n\n pls add it to you teams id in the admin UI"
-    );
+    return "[FINAL_DATA:] PLS create a company form the ADMIN UI";
   }
 
   // [TODO]
@@ -60,7 +61,7 @@ export async function messageHandler(receivedMessage: messageReq) {
           [],
           sendStatusUpdate,
         );
-        await wait(300)
+        await wait(300);
         if (output.needsApproval) {
           sendStatusUpdate(
             "[FINAL_DATA::]" +
@@ -97,14 +98,15 @@ export async function messageHandler(receivedMessage: messageReq) {
 
 export async function commandHandler(commandMessage: commandReq) {
   let token;
-  token = await GetTokenFromCid(commandMessage.conversationId);
+  // token = await GetTokenFromCid(receivedMessage.conversationId);
+  token = (
+    await prisma.company.findFirst({
+      where: {},
+    })
+  )?.mcpToken;
 
   if (!token) {
-    return (
-      "[FINAL_DATA:] unauthorized\nhere is your Conversation Id : " +
-      commandMessage.conversationId +
-      "\n pls add it to you teams id in the admin UI"
-    );
+    return "[FINAL_DATA:] PLS create a company form the ADMIN UI";
   }
 
   return await runCommand(

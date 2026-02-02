@@ -25,7 +25,7 @@ export type commandReq = {
 export const CommandReqSchema = {
   body: t.Object({
     conversationId: t.String(),
-    command: t.String(),
+    commandId: t.String(),
     payload: t.Any(),
   }),
 };
