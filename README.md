@@ -10,7 +10,7 @@ The SmartHire AI platform is fully deployed and ready for use. You can explore t
 
 ### 📊 System Entry Points
 
-* **Dashboard:** [smarthire.fun](https://smarthire.fun)
+* **Dashboard:** [smarthire.fun](https://smarthire.fun/setup)
 * **Chat Interface:** [chat.smarthire.fun](https://chat.smarthire.fun)
 
 ### 🔑 Demo Credentials
