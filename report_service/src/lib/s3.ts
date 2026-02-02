@@ -3,7 +3,7 @@ import { S3Client } from "bun";
 const s3Client = new S3Client({
     accessKeyId: process.env.ACCESS_KEY_ID!,
     secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-    bucket: "contracts", // Default bucket, but can be overridden
+    bucket: process.env.S3_CONTRACTS_BUCKET_NAME || "contracts",
     endpoint: process.env.ENDPOINT,
     region: process.env.REGION || "eu-west-1",
 });

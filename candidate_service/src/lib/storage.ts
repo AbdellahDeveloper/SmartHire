@@ -3,12 +3,12 @@ import { S3Client } from "bun";
 const s3Client = new S3Client({
     accessKeyId: process.env.ACCESS_KEY_ID!,
     secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-    bucket: "cv",
+    bucket: process.env.S3_CV_BUCKET_NAME || "cv",
     endpoint: process.env.ENDPOINT,
     region: process.env.REGION,
 });
 
-const BUCKET_NAME = "cv";
+const BUCKET_NAME = process.env.S3_CV_BUCKET_NAME || "cv";
 
 export const uploadCV = async (file: File, key: string): Promise<string> => {
     try {
