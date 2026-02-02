@@ -6,7 +6,9 @@
       "name": "s3_processing_service",
       "dependencies": {
         "@prisma/client": "6.1.0",
+        "@types/crypto-js": "^4.2.2",
         "cronbake": "^0.4.0",
+        "crypto-js": "^4.2.0",
         "elysia": "latest",
         "prisma": "6.1.0",
       },
@@ -36,6 +38,8 @@
 
     "@tokenizer/token": ["@tokenizer/token@0.3.0", "", {}, "sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A=="],
 
+    "@types/crypto-js": ["@types/crypto-js@4.2.2", "", {}, "sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ=="],
+
     "@types/node": ["@types/node@25.0.10", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-zWW5KPngR/yvakJgGOmZ5vTBemDoSqF3AcV/LrO5u5wTWyEAVVh+IT39G4gtyAkh3CtTZs8aX/yRM82OfzHJRg=="],
 
     "bun-types": ["bun-types@1.3.7", "", { "dependencies": { "@types/node": "*" } }, "sha512-qyschsA03Qz+gou+apt6HNl6HnI+sJJLL4wLDke4iugsE6584CMupOtTY1n+2YC9nGVrEKUlTs99jjRLKgWnjQ=="],
@@ -43,6 +47,8 @@
     "cookie": ["cookie@1.1.1", "", {}, "sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ=="],
 
     "cronbake": ["cronbake@0.4.0", "", {}, "sha512-xxRy6KNi858/3RuBXHziRgcntSCXaT9FgEKkY8zh/72/yPD+8IpTfUWYxmwjFcYsce4jDvcunr7tXCq4vz5Hrw=="],
+
+    "crypto-js": ["crypto-js@4.2.0", "", {}, "sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q=="],
 
     "debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
 

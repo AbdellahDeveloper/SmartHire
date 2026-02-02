@@ -301,3 +301,16 @@ model Commands {
 
   @@map("Commands")
 }
+
+model ServiceLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String   @db.ObjectId
+  service   String // "S3" or "EMAIL"
+  action    String // "MANUAL" or "CRON"
+  status    String // "SUCCESS", "FAILURE", "INFO"
+  message   String
+  fileName  String?
+  createdAt DateTime @default(now())
+
+  @@map("service_logs")
+}

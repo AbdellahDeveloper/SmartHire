@@ -221,6 +221,8 @@ services:
       - REGION=${REGION}
       - SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
       - ACCESS_KEY_ID=${ACCESS_KEY_ID}
+      - S3_SERVICE_URL=http://s3-processing-service:3007
+      - EMAIL_SERVICE_URL=http://email-processing-service:3006
     networks:
       - smarthire-network
     restart: unless-stopped

@@ -17,16 +17,22 @@ mock.module("../db", () => ({
                     secretKey: "secret",
                     bucket: "test-bucket",
                     lastChecked: new Date(0),
-                    user_id: "user-123"
+                    companyId: "company-123"
                 }
             ],
             update: async (args: any) => ({ id: args.where.id, ...args.data })
+        },
+        company: {
+            findUnique: async (args: any) => ({
+                id: args.where.id,
+                mcpToken: "mock-mcp-token"
+            })
         }
     }
 }));
 
 // Mock Fetch
-const mockFetch = mock((url: string) => {
+const mockFetch = mock((url: string, options: any) => {
     if (url.endsWith("/document-type")) {
         return Promise.resolve(new Response(JSON.stringify({ success: true, type: "CV" })));
     }
@@ -41,7 +47,7 @@ const mockFetch = mock((url: string) => {
 (Bun as any).S3 = class {
     constructor(config: any) { }
     list = async () => ({
-        objects: [
+        contents: [ // Changed from objects to contents to match implementation
             { key: "resume1.pdf", lastModified: new Date() },
             { key: "image.png", lastModified: new Date() }, // Should be filtered out
             { key: "old_resume.pdf", lastModified: new Date(0) } // Should be filtered out
@@ -62,7 +68,7 @@ describe("S3 Processing Service Tests", () => {
             accessKey: "AKIA...",
             secretKey: "secret",
             bucket: "my-bucket",
-            user_id: "user-1"
+            companyId: "company-1"
         };
 
         const response = await app.handle(
@@ -90,7 +96,7 @@ describe("S3 Processing Service Tests", () => {
         expect(result[0].bucket).toBe("test-bucket");
     });
 
-    it("should process S3 account and upload new PDFs", async () => {
+    it("should process S3 account and upload new PDFs with mcpToken", async () => {
         const credential = {
             id: "mock-id",
             endpoint: "http://mock-s3",
@@ -99,7 +105,7 @@ describe("S3 Processing Service Tests", () => {
             secretKey: "secret",
             bucket: "test-bucket",
             lastChecked: new Date(0),
-            user_id: "user-123"
+            companyId: "company-123"
         };
 
         await processS3Account(credential);
@@ -107,10 +113,14 @@ describe("S3 Processing Service Tests", () => {
         expect(mockFetch).toHaveBeenCalled();
         const calls = mockFetch.mock.calls;
 
-        const hasDocumentTypeCall = calls.some(call => call[0].toString().includes("/document-type"));
-        const hasBulkCall = calls.some(call => call[0].toString().includes("/bulk"));
+        const documentTypeCall = calls.find(call => call[0].toString().includes("/document-type"));
+        const bulkCall = calls.find(call => call[0].toString().includes("/bulk"));
 
-        expect(hasDocumentTypeCall).toBe(true);
-        expect(hasBulkCall).toBe(true);
+        expect(documentTypeCall).toBeDefined();
+        expect(bulkCall).toBeDefined();
+
+        // Verify Authorization header
+        expect(documentTypeCall![1].headers["Authorization"]).toBe("Bearer mock-mcp-token");
+        expect(bulkCall![1].headers["Authorization"]).toBe("Bearer mock-mcp-token");
     });
 });
