@@ -19,7 +19,7 @@ SmartHire AI is a state-of-the-art, microservices-based recruitment ecosystem de
 
 # Video Overview
 
-[![Watch the video](https://img.youtube.com/vi/WhU6G5fDGKw/maxresdefault.jpg)](https://www.youtube.com/watch?v=WhU6G5fDGKw)
+[![Watch the video](https://img.youtube.com/vi/WhU6G5fDGKw/maxresdefault.jpg)](https://www.youtube.com/watch?v=e9f8PMmVMhc)
 
 ## 🏗 System Architecture
 
@@ -92,7 +92,7 @@ graph TD
 
 ---
 
-## 🤖 Teams Bot Architecture (Port 3000)
+## 🤖 Teams Bot Architecture
 
 The SmartHire Teams Bot is built using a modern dual-agent pattern to provide a seamless conversational experience within Microsoft Teams:
 
@@ -123,7 +123,7 @@ The SmartHire Teams Bot is built using a modern dual-agent pattern to provide a 
 
 Use is ENV file struct:
 
-copy and fill this env file
+- Copy and fill this env file
 
 ```.env
 ENCRYPTION_KEY=
@@ -193,7 +193,9 @@ GOOGLE_REDIRECT_URI=
 # meet scheduler call back url ex : http://localhost:3012/callback
 ```
 
+- Build and start all services:
 ```bash
+docker compose build
 docker-compose --env-file .env up -d
 ```
 
@@ -211,9 +213,97 @@ docker-compose up -d --build
 The application will be available at:
 
 - **WebApp**: [http://localhost:3000](http://localhost:3000)
-- **Teams Bot**: [http://localhost:3333/api/messages](http://localhost:3333/api/messages)
+- **Teams Bot**: [http://localhost:3978/api/messages](http://localhost:3978/api/messages)
 - **MCP Server**: [http://localhost:3003](http://localhost:3003)
 - **MongoDB**: [localhost:27017](localhost:27017)
+
+### First-Time Web Setup
+
+- Open your browser and go to [Web App](http://localhost:3000)
+
+You’ll see the setup interface.  
+**Provide:**
+
+- Your admin email
+- Your LLM API key
+- Your SMTP credentials
+
+This configures the system.
+
+### Create a Company
+
+After setup:
+- Go to Company
+- Click Add Company
+
+    Enter:
+    - Company name
+    - Company email
+
+The system will send an invitation email.
+
+### Activate the Company Account
+
+- Open the email sent to the company address
+- Click the invitation link
+- Set a password
+
+Now the company account exists.
+
+**Log out** from the admin account and log in to the **company account** to continue next steps
+
+
+### Connect Microsoft Teams (Bot Setup)  
+
+You must link the app to Teams using a **Conversation ID**.
+
+#### Step 1 : Expose your local bot using ngrok  
+On the server where Teams Bot is running:
+``` bash 
+ngrok http 3978
+```
+
+Copy the HTTPS URL ngrok gives you, for example:
+https://abc123.ngrok.io
+
+#### Step 2 : Configure Azure Bot
+
+In the Azure Portal:
+
+- Open your Azure Bot resource
+- Go to Messaging Endpoint
+
+Set it to:  
+https://YOUR_NGROK_URL/api/messages  
+**Save changes.**
+
+Step 3 — Get the Conversation ID
+
+*You can test this from the Azure portal web chat.*
+
+Send a message  
+The bot will reply with your Conversation ID
+
+Step 4 — Add Conversation ID to the App
+
+Go to Dashboard → Settings
+
+Paste the Conversation ID into the Teams Conversation ID field  
+**Click save changes**
+
+### You're Ready 🎉
+
+Your system is now connected.
+
+You can:  
+- Upload CVs  
+- Chat with the bot  
+- Start using the system  
+
+⚠️ Important:
+The database starts empty, so upload CVs first to see real results.
+
+
 
 ---
 
