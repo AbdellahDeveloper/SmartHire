@@ -11,113 +11,176 @@
     />
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         font-family: "Inter", sans-serif;
-        background: linear-gradient(135deg, #0f172a, #1e293b);
+        background: #0f172a;
         color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 20px;
+        overflow: hidden;
       }
 
-      .container {
-        max-width: 1000px;
+      /* Fullscreen Chat */
+      .chat-wrapper {
+        position: fixed;
+        margin: 50;
+        inset: 0;
+        z-index: 1;
+      }
+
+      iframe {
         width: 100%;
-        text-align: center;
+        height: 100%;
+        border: none;
+      }
+
+      /* Modal Overlay */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+      }
+
+      .modal-content {
+        max-width: 600px;
+        width: 90%;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        text-align: left;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       h1 {
-        font-size: 36px;
-        margin-bottom: 10px;
+        margin-top: 0;
+        font-size: 26px;
         background: linear-gradient(90deg, #38bdf8, #818cf8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
 
-      .subtitle {
-        font-size: 18px;
+      .info p {
         color: #cbd5e1;
-        margin-bottom: 30px;
-      }
-
-      .info-box {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 20px 25px;
-        border-radius: 14px;
-        margin-bottom: 30px;
-        text-align: left;
+        font-size: 15px;
         line-height: 1.6;
-        backdrop-filter: blur(10px);
       }
 
-      .info-box strong {
+      .info strong {
         color: #7dd3fc;
       }
 
-      .chat-wrapper {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+      .buttons {
+        margin-top: 25px;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
       }
 
-      iframe {
-        display: block;
-        width: 100%;
-        height: 520px;
+      button {
+        padding: 10px 18px;
+        border-radius: 10px;
         border: none;
+        font-weight: 600;
+        cursor: pointer;
       }
 
-      .footer {
-        margin-top: 30px;
-        font-size: 14px;
-        color: #94a3b8;
+      .primary {
+        background: linear-gradient(90deg, #38bdf8, #818cf8);
+        color: white;
+      }
+
+      .secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+      }
+
+      /* Floating Info Button */
+      .info-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 14px;
+        border-radius: 12px;
+        cursor: pointer;
+        z-index: 5;
+        backdrop-filter: blur(6px);
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <h1>AI Assistant Live Demo</h1>
-      <h2>Try is right now from here</h2>
-      <div class="chat-wrapper">
-        <iframe
-          src="https://webchat.botframework.com/embed/ABM_bot?s=4R13H3wmne6Z8w4m9PkQtKFgLzAjVR2EZxyToO0Vi54243U6H9qoJQQJ99CAACZoyfiAArohAAABAZBS4AUY.FjGFAq2ISQLWZbETG5EhXmVYy1V3IhsaKVTY4cNRHmV4BjHhx2XRJQQJ99CAACZoyfiAArohAAABAZBSU1W1"
-          allow="microphone"
-        ></iframe>
-      </div>
+    <!-- Chat Fullscreen -->
+    <div class="chat-wrapper">
+      <iframe
+        src="https://webchat.botframework.com/embed/ABM_bot?s=4R13H3wmne6Z8w4m9PkQtKFgLzAjVR2EZxyToO0Vi54243U6H9qoJQQJ99CAACZoyfiAArohAAABAZBS4AUY.FjGFAq2ISQLWZbETG5EhXmVYy1V3IhsaKVTY4cNRHmV4BjHhx2XRJQQJ99CAACZoyfiAArohAAABAZBSU1W1"
+        allow="microphone"
+      ></iframe>
+    </div>
 
-      <p class="subtitle">
-        Test the bot instantly — no Microsoft Teams setup required
-      </p>
+    <!-- Modal -->
+    <div class="modal" id="modal">
+      <div class="modal-content">
+        <h1>AI Assistant Live Demo</h1>
 
-      <div class="info-box">
-        <p>
-          <strong>What is this?</strong><br />
-          This is a web-based simulation of the assistant that normally runs
-          inside Microsoft Teams.
-        </p>
+        <div class="info">
+          <p>
+            <strong>What is this?</strong><br />
+            A web simulation of the assistant that normally runs inside
+            Microsoft Teams.
+          </p>
 
-        <p>
-          <strong>Important to know:</strong><br />
-          This demo version runs with a lighter model and simplified
-          environment, so it may not be as powerful or feature-complete as the
-          main application.
-        </p>
+          <p>
+            <strong>Important:</strong><br />
+            This demo uses a lighter model and simplified environment compared
+            to the main system.
+          </p>
 
-        <p>
-          <strong>Why use it?</strong><br />
-          It’s a fast and easy way to experiment, test conversations, and see
-          how the chat experience works before using the full system.
-        </p>
-      </div>
+          <p>
+            <strong>Why use it?</strong><br />
+            Quickly test conversations and explore the chat experience.
+          </p>
+        </div>
 
-      <div class="footer">
-        Demo environment • For testing and exploration purposes
+        <div class="buttons">
+          <button class="primary" onclick="closeModal()">Try it now</button>
+        </div>
       </div>
     </div>
+
+    <script>
+      const modal = document.getElementById("modal");
+
+      function closeModal() {
+        modal.style.display = "none";
+      }
+
+      function openModal() {
+        modal.style.display = "flex";
+      }
+    </script>
   </body>
 </html>
