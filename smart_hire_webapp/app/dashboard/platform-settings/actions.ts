@@ -9,20 +9,19 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText, tool } from "ai";
 import { z } from "zod";
 
-const SystemSettingsSchema = z.object({
-    llm: z.object({
-        provider: z.string().min(1, "Provider is required"),
-        apiKey: z.string().min(1, "API Key is required"),
-        modelName: z.string().min(1, "Model Name is required"),
-        baseUrl: z.string().optional(),
-    }),
-    smtp: z.object({
-        host: z.string().min(1, "SMTP Host is required"),
-        port: z.number().int(),
-        user: z.string().min(1, "SMTP User is required"),
-        password: z.string().optional(),
-        from: z.string().min(1, "From email is required"),
-    }).optional()
+const LLMSettingsSchema = z.object({
+    provider: z.string().min(1, "Provider is required"),
+    apiKey: z.string().min(1, "API Key is required"),
+    modelName: z.string().min(1, "Model Name is required"),
+    baseUrl: z.string().optional(),
+});
+
+const SMTPSettingsSchema = z.object({
+    host: z.string().min(1, "SMTP Host is required"),
+    port: z.number().int(),
+    user: z.string().min(1, "SMTP User is required"),
+    password: z.string().optional(),
+    from: z.string().min(1, "From email is required"),
 });
 
 export async function getSystemSettings() {
@@ -54,15 +53,13 @@ export async function getSystemSettings() {
     }
 }
 
-export async function updateSystemSettings(data: z.infer<typeof SystemSettingsSchema>) {
+export async function updateLLMSettings(data: z.infer<typeof LLMSettingsSchema>) {
     try {
-        // 1. Validate the data
-        const validatedData = SystemSettingsSchema.parse(data);
+        const validatedData = LLMSettingsSchema.parse(data);
 
-        // 2. Validate LLM Connectivity
         try {
             let model;
-            const { provider, apiKey, modelName, baseUrl } = validatedData.llm;
+            const { provider, apiKey, modelName, baseUrl } = validatedData;
 
             if (provider === "openai") {
                 model = createOpenAI({ apiKey })(modelName || "gpt-5-nano");
@@ -86,7 +83,7 @@ export async function updateSystemSettings(data: z.infer<typeof SystemSettingsSc
                 tools: {
                     getSecret: tool({
                         description: "Here you find the secret",
-                        inputSchema: z.void(),
+                        inputSchema: z.object({}),
                         execute: async () => {
                             return { secret: "Welcome_TO_SMARTHIRE" };
                         }
@@ -99,37 +96,53 @@ export async function updateSystemSettings(data: z.infer<typeof SystemSettingsSc
             return { success: false, error: `LLM Verification Failed: ${(error as Error).message}` };
         }
 
-        // 3. Save the settings
+        const settings = await prisma.systemSettings.findFirst();
+        if (!settings) return { success: false, error: "System settings not found" };
+
+        await prisma.systemSettings.update({
+            where: { id: settings.id },
+            data: {
+                llmProvider: validatedData.provider,
+                llmApiKey: encrypt(validatedData.apiKey),
+                llmModel: validatedData.modelName,
+                llmBaseUrl: validatedData.baseUrl,
+            }
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Failed to update LLM settings:", error);
+        return { success: false, error: error.message || "Failed to update LLM settings" };
+    }
+}
+
+export async function updateSMTPSettings(data: z.infer<typeof SMTPSettingsSchema>) {
+    try {
+        const validatedData = SMTPSettingsSchema.parse(data);
+
         const settings = await prisma.systemSettings.findFirst();
         if (!settings) return { success: false, error: "System settings not found" };
 
         const updateData: any = {
-            llmProvider: validatedData.llm.provider,
-            llmApiKey: encrypt(validatedData.llm.apiKey),
-            llmModel: validatedData.llm.modelName,
-            llmBaseUrl: validatedData.llm.baseUrl,
+            smtpHost: validatedData.host,
+            smtpPort: validatedData.port,
+            smtpUser: validatedData.user,
+            smtpFrom: validatedData.from,
+            smtpConfigured: true,
         };
 
-        if (validatedData.smtp) {
-            updateData.smtpHost = validatedData.smtp.host;
-            updateData.smtpPort = validatedData.smtp.port;
-            updateData.smtpUser = validatedData.smtp.user;
-            updateData.smtpFrom = validatedData.smtp.from;
-            updateData.smtpConfigured = true;
-            if (validatedData.smtp.password) {
-                updateData.smtpPassword = encrypt(validatedData.smtp.password);
-            }
+        if (validatedData.password) {
+            updateData.smtpPassword = encrypt(validatedData.password);
         }
 
-        const updated = await prisma.systemSettings.update({
+        await prisma.systemSettings.update({
             where: { id: settings.id },
             data: updateData
         });
 
-        return { success: true, settings: updated };
+        return { success: true };
     } catch (error: any) {
-        console.error("Failed to update system settings:", error);
-        return { success: false, error: error.message || "Failed to update system settings" };
+        console.error("Failed to update SMTP settings:", error);
+        return { success: false, error: error.message || "Failed to update SMTP settings" };
     }
 }
-

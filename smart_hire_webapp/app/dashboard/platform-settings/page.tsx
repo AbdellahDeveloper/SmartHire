@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getSystemSettings, updateSystemSettings } from "./actions";
+import { getSystemSettings, updateLLMSettings, updateSMTPSettings } from "./actions";
 
 export default function AdminDashboardPage() {
-    const [loading, setLoading] = useState(false);
+    const [llmLoading, setLlmLoading] = useState(false);
+    const [smtpLoading, setSmtpLoading] = useState(false);
     const [settings, setSettings] = useState({
         llm: {
             provider: "openai",
@@ -54,15 +55,26 @@ export default function AdminDashboardPage() {
         loadSettings();
     }, []);
 
-    const handleUpdateSettings = async () => {
-        setLoading(true);
-        const result = await updateSystemSettings(settings);
+    const handleUpdateLLMSettings = async () => {
+        setLlmLoading(true);
+        const result = await updateLLMSettings(settings.llm);
         if (result.success) {
-            toast.success("System settings updated successfully");
+            toast.success("LLM settings updated and verified successfully");
         } else {
-            toast.error(result.error || "Failed to update settings");
+            toast.error(result.error || "Failed to update LLM settings");
         }
-        setLoading(false);
+        setLlmLoading(false);
+    };
+
+    const handleUpdateSMTPSettings = async () => {
+        setSmtpLoading(true);
+        const result = await updateSMTPSettings(settings.smtp);
+        if (result.success) {
+            toast.success("SMTP settings updated successfully");
+        } else {
+            toast.error(result.error || "Failed to update SMTP settings");
+        }
+        setSmtpLoading(false);
     };
 
     return (
@@ -127,6 +139,20 @@ export default function AdminDashboardPage() {
                             onChange={(e) => setSettings(prev => ({ ...prev, llm: { ...prev.llm, apiKey: e.target.value } }))}
                         />
                     </div>
+                    <div className="pt-2">
+                        <Button
+                            onClick={handleUpdateLLMSettings}
+                            disabled={
+                                llmLoading ||
+                                !settings.llm.apiKey ||
+                                !settings.llm.modelName ||
+                                !settings.llm.provider
+                            }
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
+                        >
+                            {llmLoading ? "Verifying & Saving..." : "Update LLM Settings"}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -186,24 +212,22 @@ export default function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleUpdateSettings}
-                        disabled={
-                            loading ||
-                            !settings.llm.apiKey ||
-                            !settings.llm.modelName ||
-                            !settings.llm.provider ||
-                            !settings.smtp.host ||
-                            !settings.smtp.user ||
-                            !settings.smtp.from
-                        }
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
-                    >
-                        {loading ? "Saving..." : "Save All Configurations"}
-                    </Button>
+                    <div className="pt-2">
+                        <Button
+                            onClick={handleUpdateSMTPSettings}
+                            disabled={
+                                smtpLoading ||
+                                !settings.smtp.host ||
+                                !settings.smtp.user ||
+                                !settings.smtp.from
+                            }
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
+                        >
+                            {smtpLoading ? "Saving..." : "Update SMTP Settings"}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
     );
 }
-
