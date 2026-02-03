@@ -3,7 +3,7 @@ import { BotMessageRouter } from "./routes/bot.routes";
 
 const app = new Elysia().use(BotMessageRouter).listen({
   port:3040, 
-  idleTimeout:3600
+  idleTimeout:255
 });
 
 console.log(
