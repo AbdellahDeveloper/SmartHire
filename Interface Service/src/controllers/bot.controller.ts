@@ -86,7 +86,10 @@ export async function messageHandler(receivedMessage: messageReq) {
             message: output.data,
           },
         });
-        const FinalOutput = await Formatter(output.data);
+        const FinalOutput = await Formatter(
+          output.data,
+          receivedMessage.message,
+        );
 
         sendStatusUpdate("[FINAL_DATA::]" + JSON.stringify(FinalOutput));
 

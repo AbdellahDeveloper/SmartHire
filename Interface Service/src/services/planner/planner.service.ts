@@ -21,7 +21,7 @@ export async function planner(
   data: any;
 }> {
   // get the context of prev msgs
-  const contextMessages = await getContext(cId);
+  const contextMessages = await getContext(cId, 30);
   const messages: ModelMessage[] = !context
     ? [
         ...contextMessages,
@@ -50,7 +50,10 @@ export async function planner(
       console.log(s?.toolCalls);
       sendStatusUpdate(
         "[step completed] " + s?.toolCalls
-          ? s?.toolCalls[s?.toolCalls?.length - 1]?.toolName?.replaceAll("_"," ")
+          ? s?.toolCalls[s?.toolCalls?.length - 1]?.toolName?.replaceAll(
+              "_",
+              " ",
+            )
           : "",
       );
       // console.log("[step completed]", s.toolCalls); // we stream updates from here in a condition that we didnt hit the time out
