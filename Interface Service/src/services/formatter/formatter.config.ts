@@ -128,6 +128,8 @@ you need to use markDown for links and put the Cv as a clickable
 also make sure the all the text is visible and not cropped  
 in a title or in table
 
+use bullet points no long lines of description
+
 You are provided:
 An Adaptive Card schema
 Example cards
