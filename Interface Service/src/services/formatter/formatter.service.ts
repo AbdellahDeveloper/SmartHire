@@ -8,7 +8,7 @@ import {
 } from "./formatter.config";
 import { getModel } from "../../models/ai-provider";
 
-export async function Formatter(AgentResponse: string) {
+export async function Formatter(AgentResponse: string,userReq:string) {
   console.log("Formatting");
   const schema = await Bun.file(
     "./src/services/formatter/adaptiveCardSchema.json",
@@ -37,9 +37,13 @@ export async function Formatter(AgentResponse: string) {
             text: examplesForCards,
             type: "text",
           },
+          {
+            text: "Here is what the user requested Just take formate requests From it and get a better context :"+ userReq,
+            type: "text",
+          },
 
           {
-            text: `text : ${AgentResponse}`,
+            text: `What you Formate : ${AgentResponse}`,
             type: "text",
           },
         ],

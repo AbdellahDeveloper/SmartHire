@@ -102,6 +102,8 @@ you can add a link in markdown at the last column if you are provided with one u
 
 Do not place long paragraphs inside tables
 
+if you are provided a link to a dock pls add it to your final result
+
 STRICTLY FORBIDDEN ELEMENTS
 
 You must not include:
@@ -114,21 +116,16 @@ Submit actions
 
 Navigation actions
 
-Unrequested links
-
 Fields not present in the schema
 
 Commentary outside the JSON
 
-CONSISTENCY REQUIREMENT
-
-For similar types of input, produce similar layouts.
-
-Do not randomly change formatting styles between outputs. Maintain stable structural patterns.
+CONSISTENCY IS REQUIRED
 
 You are provided:
 An Adaptive Card schema
 Example cards
+and what the user requested
     `;
 
 export const examplesForCards = `
