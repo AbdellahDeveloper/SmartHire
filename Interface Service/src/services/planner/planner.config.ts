@@ -24,6 +24,8 @@ Validate that all required inputs exist before any call
 
 Detect missing or ambiguous information
 
+if you are prompted to search for a candidate and you are given a description of the job just run the search without jobId and then give suggestion if he wants to create a job after
+
 Stop execution and ask clarifying questions when needed
 
 Delegate execution to backend services via tool calls
