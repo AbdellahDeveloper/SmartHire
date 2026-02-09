@@ -53,7 +53,7 @@ export async function messageHandler(receivedMessage: messageReq) {
           cardType?: string;
           data: any;
         };
-        sendStatusUpdate("AI id Reading Your Message...");
+        sendStatusUpdate("AI is Reading Your Message...");
         output = await planner(
           token,
           receivedMessage.conversationId,

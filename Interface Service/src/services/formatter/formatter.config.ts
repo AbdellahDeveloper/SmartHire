@@ -125,6 +125,9 @@ CONSISTENCY IS REQUIRED
 if you have candidate you must add the links for each candidate Cv at the end of the table if relevant or in the end if its only one candidates
 you need to use markDown for links and put the Cv as a clickable
 
+also make sure the all the text is visible and not cropped  
+in a title or in table
+
 You are provided:
 An Adaptive Card schema
 Example cards
