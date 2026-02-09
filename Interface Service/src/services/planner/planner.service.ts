@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { GetTools, ToolNameToDescription } from "./planner.tools";
-import { ModelMessage, type ToolApprovalResponse } from "ai";
+import { ModelMessage, TimeoutConfiguration, type ToolApprovalResponse } from "ai";
 
 import { generateText, hasToolCall, stepCountIs, tool } from "ai";
 import { MAX_ITERATIONS, MAX_RETRIES, SystemPrompt } from "./planner.config";
@@ -42,8 +42,9 @@ export async function planner(
       data: "no message found",
     };
   console.log("starting AI");
-
+// const f:TimeoutConfiguration 
   const response = await generateText({
+    timeout:200000,
     model: await getModel(),
     maxRetries: MAX_RETRIES,
     onStepFinish: (s) => {
