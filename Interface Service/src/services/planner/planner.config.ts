@@ -72,7 +72,7 @@ RESPONSE
 
 - When all data is present and execution is valid:
 
-Call the appropriate tools
+Call the appropriate tools to give the user all the data he wants
 
 Return full verbose raw responses
 
@@ -84,7 +84,6 @@ Do not summarize or format for end users
 
 Ask a direct question
 
-Do not call any tools
 
 No other response type is allowed.
 
