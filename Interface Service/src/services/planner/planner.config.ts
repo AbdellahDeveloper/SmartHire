@@ -110,5 +110,5 @@ If action is valid → call tools.
 If information is missing → ask.
 `;
 
-export const MAX_ITERATIONS = 5;
-export const MAX_RETRIES = 3;
+export const MAX_ITERATIONS = 50;
+export const MAX_RETRIES = 10;
