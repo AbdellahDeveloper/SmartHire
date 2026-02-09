@@ -73,7 +73,7 @@ RESPONSE
 - When all data is present and execution is valid:
 
 Call the appropriate tools to give the user all the data he wants
-
+if you can call more tools in one back Do It
 Return full verbose raw responses
 
 Include IDs, system fields, links, and backend results
