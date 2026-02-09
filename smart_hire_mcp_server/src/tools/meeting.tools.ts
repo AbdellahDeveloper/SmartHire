@@ -16,7 +16,7 @@ export const meetingToolDefinitions = [
             required: ["startTime", "endTime"],
         },
         _meta: {
-            needsApproval: true
+            needsApproval: false
         }
     },
     {
@@ -34,7 +34,7 @@ export const meetingToolDefinitions = [
             required: ["candidateId", "startTime", "endTime"],
         },
         _meta: {
-            needsApproval: true
+            needsApproval: false
         }
     },
 ];

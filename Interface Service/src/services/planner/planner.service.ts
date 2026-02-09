@@ -42,7 +42,7 @@ export async function planner(
       data: "no message found",
     };
   console.log("starting AI");
-// const f:TimeoutConfiguration 
+
   const response = await generateText({
     timeout:200000,
     model: await getModel(),

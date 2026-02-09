@@ -16,7 +16,7 @@ export const reportToolDefinitions = [
             required: ["candidateId", "date"]
         },
         _meta: {
-            needsApproval: true
+            needsApproval: false
         }
     },
     {
@@ -60,7 +60,7 @@ export const reportToolDefinitions = [
 
 export const toolRegistry = {
     create_contract: {
-        needsApproval: true,
+        needsApproval: false,
         permissions: ["hr"],
         audit: true
     },
